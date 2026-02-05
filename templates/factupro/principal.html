@@ -1,0 +1,24 @@
+{% extends "base/base.html" %}
+
+{% block title %}Panel principal{% endblock %}
+{% block page_title %}Panel principal{% endblock %}
+
+{% block nav_academia %}active{% endblock %}
+{% block username %}Admin{% endblock %}
+{% block notif_count %}296{% endblock %}
+
+{% block content %}
+  <section class="panel">
+    <div class="panel-header">
+      <h3 class="title">Bienvenido al Sistema de Gestión de Posgrados</h3>
+      <div class="text-muted fw-semibold">
+        {{ now|default:"Feb. 2, 2026, 11:45 a.m." }}
+      </div>
+    </div>
+    <div class="panel-body">
+      <p class="mb-0">
+        Aquí puedes colocar tu contenido dinámico: cards, tablas, gráficos, accesos rápidos, etc.
+      </p>
+    </div>
+  </section>
+{% endblock %}

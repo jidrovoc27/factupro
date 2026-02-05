@@ -1,0 +1,404 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FactuPro | Facturación electrónica SRI</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Bootstrap (solo utilidades) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="{% static 'css/web.css' %}?v=1">
+</head>
+
+<body>
+  <!-- NAV -->
+  <header class="nav-wrap">
+    <nav class="nav-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark"></span>
+        <span class="brand-name">FactuPro</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="#features">Beneficios</a>
+        <a href="#modules">Módulos</a>
+        <a href="#pricing">Precios</a>
+        <a href="#faq">FAQ</a>
+      </div>
+
+      <div class="nav-actions">
+        <a class="btn-ghost" href="{% url 'factupro' %}" target="_blank">Ingresar</a>
+        <a class="btn-brand" href="#cta">Solicitar demo</a>
+        <button class="nav-burger" id="navBurger" aria-label="Abrir menú">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </nav>
+
+    <div class="nav-mobile" id="navMobile">
+      <a href="#features">Beneficios</a>
+      <a href="#modules">Módulos</a>
+      <a href="#pricing">Precios</a>
+      <a href="#faq">FAQ</a>
+      <a href="{% url 'factupro' %}" target="_blank">Ingresar</a>
+      <a class="btn-brand block" href="#cta">Solicitar demo</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <main id="top" class="hero">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="badge">
+          <span class="pulse"></span>
+          Compatible con SRI • Multiempresa • En la nube
+        </div>
+
+        <h1>Facturación electrónica profesional para tu negocio en Ecuador</h1>
+        <p>
+          Emite comprobantes electrónicos, gestiona clientes y controla tus ventas
+          con reportes claros. Seguridad por roles y auditoría.
+        </p>
+
+        <div class="hero-ctas">
+          <a class="btn-brand" href="#cta">
+            <i class="fa-solid fa-rocket"></i> Empezar ahora
+          </a>
+          <a class="btn-ghost" href="#demo">
+            <i class="fa-regular fa-circle-play"></i> Ver demo
+          </a>
+        </div>
+
+        <div class="trust">
+          <div class="trust-item">
+            <i class="fa-solid fa-shield-halved"></i>
+            <div>
+              <b>Seguridad</b>
+              <small>Roles, auditoría y trazabilidad</small>
+            </div>
+          </div>
+
+          <div class="trust-item">
+            <i class="fa-solid fa-cloud"></i>
+            <div>
+              <b>En la nube</b>
+              <small>Accede desde cualquier lugar</small>
+            </div>
+          </div>
+
+          <div class="trust-item">
+            <i class="fa-solid fa-headset"></i>
+            <div>
+              <b>Soporte</b>
+              <small>Acompañamiento en implementación</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right" id="demo">
+        <div class="hero-card">
+          <div class="hero-card-top">
+            <span class="chip"><i class="fa-solid fa-receipt"></i> Facturación SRI</span>
+            <span class="chip"><i class="fa-solid fa-building"></i> Multiempresa</span>
+          </div>
+
+            <div class="showcase">
+
+                <div class="screen-frame">
+                    <img src="{% static 'img/web/factupro.png' %}" alt="Dashboard FactuPro">
+                </div>
+
+            </div>
+
+
+            <div class="hero-card-bottom">
+            <div class="mini-metrics">
+              <div class="metric">
+                <b>Automático</b>
+                <small>Emisión y envío</small>
+              </div>
+              <div class="metric">
+                <b>Reportes</b>
+                <small>Ventas e impuestos</small>
+              </div>
+              <div class="metric">
+                <b>Control</b>
+                <small>Auditoría & roles</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-bg"></div>
+  </main>
+
+  <!-- FEATURES -->
+  <section id="features" class="section">
+    <div class="container-x">
+      <div class="section-head">
+        <h2>Todo lo necesario para facturar con control</h2>
+        <p>Enfocado en productividad, cumplimiento y facilidad de uso.</p>
+      </div>
+
+      <div class="grid-3">
+        <article class="card">
+          <i class="fa-solid fa-bolt"></i>
+          <h3>Emite en segundos</h3>
+          <p>Flujo ágil para facturas, notas de crédito y retenciones.</p>
+        </article>
+
+        <article class="card">
+          <i class="fa-solid fa-chart-line"></i>
+          <h3>Reportes inteligentes</h3>
+          <p>Ventas, cobros, impuestos y estado de comprobantes.</p>
+        </article>
+
+        <article class="card">
+          <i class="fa-solid fa-user-shield"></i>
+          <h3>Seguridad por roles</h3>
+          <p>Permisos por usuario, auditoría de acciones y trazabilidad.</p>
+        </article>
+
+        <article class="card">
+          <i class="fa-solid fa-building"></i>
+          <h3>Multiempresa</h3>
+          <p>Administra varias entidades con configuración independiente.</p>
+        </article>
+
+        <article class="card">
+          <i class="fa-solid fa-envelope-circle-check"></i>
+          <h3>Envío automático</h3>
+          <p>Notificaciones y entrega digital para tus clientes.</p>
+        </article>
+
+        <article class="card">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <h3>Respaldo</h3>
+          <p>Tu información protegida y lista cuando la necesites.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULES -->
+  <section id="modules" class="section alt">
+    <div class="container-x">
+      <div class="section-head">
+        <h2>Módulos principales</h2>
+        <p>Construido para escalar: desde una pyme hasta multi-sucursal.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="list-card">
+          <h3><i class="fa-solid fa-receipt"></i> Comprobantes</h3>
+          <ul>
+            <li>Factura, Nota de Crédito</li>
+            <li>Retención, Guía de Remisión</li>
+            <li>Secuenciales y establecimientos</li>
+          </ul>
+        </div>
+
+        <div class="list-card">
+          <h3><i class="fa-solid fa-users"></i> Clientes & proveedores</h3>
+          <ul>
+            <li>Catálogo y segmentación</li>
+            <li>Historial de transacciones</li>
+            <li>Datos por empresa</li>
+          </ul>
+        </div>
+
+        <div class="list-card">
+          <h3><i class="fa-solid fa-chart-pie"></i> Reportería</h3>
+          <ul>
+            <li>Ventas e impuestos</li>
+            <li>Documentos autorizados/rechazados</li>
+            <li>Exportables</li>
+          </ul>
+        </div>
+
+        <div class="list-card">
+          <h3><i class="fa-solid fa-gears"></i> Configuración</h3>
+          <ul>
+            <li>Usuarios, roles y permisos</li>
+            <li>Catálogos y parámetros</li>
+            <li>Auditoría y seguridad</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="section">
+    <div class="container-x">
+      <div class="section-head">
+        <h2>Planes simples</h2>
+        <p>Elige el plan según tu tamaño. Puedes crecer cuando quieras.</p>
+      </div>
+
+      <div class="pricing">
+        <article class="price-card">
+          <div class="price-top">
+            <h3>Normal</h3>
+            <p>Para iniciar y validar.</p>
+          </div>
+          <div class="price">
+            <b>$4</b><span>/mes</span>
+          </div>
+          <ul class="price-list">
+            <li>Hasta 50 comprobantes/mes</li>
+            <li>Disponible 2 puntos de venta</li>
+            <li>Clientes ilimitados</li>
+            <li>Soporte básico</li>
+            <li>Reportes básicos</li>
+          </ul>
+          <a class="btn-brand w-100" href="#cta">Solicitar demo</a>
+        </article>
+
+        <article class="price-card featured">
+          <div class="ribbon">Avanzado</div>
+          <div class="price-top">
+            <h3>Avanzado</h3>
+            <p>Para operar con control.</p>
+          </div>
+          <div class="price">
+            <b>$12</b><span>/mes</span>
+          </div>
+          <ul class="price-list">
+            <li>Comprobantes ilimitados</li>
+              <li>Puntos de venta ilimitados</li>
+              <li>Clientes ilimitados</li>
+              <li>Soporte prioritario</li>
+              <li>Reportes completos</li>
+          </ul>
+          <a class="btn-brand w-100" href="#cta">Solicitar demo</a>
+        </article>
+
+        <article class="price-card">
+          <div class="price-top">
+            <h3>Empresarial</h3>
+            <p>Para instituciones y alto volumen.</p>
+          </div>
+          <div class="price">
+            <b>Personalizado</b><span></span>
+          </div>
+          <ul class="price-list">
+            <li>Integraciones</li>
+            <li>SLAs</li>
+            <li>Soporte dedicado</li>
+            <li>Implementación</li>
+          </ul>
+            <br>
+          <a class="btn-brand w-100" href="#cta">Solicitar demo</a>
+        </article>
+      </div>
+
+      <p class="pricing-note">
+        *Precios referenciales. Puedes personalizar según volumen y necesidades.
+      </p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="section alt">
+    <div class="container-x">
+      <div class="section-head">
+        <h2>Preguntas frecuentes</h2>
+        <p>Respuestas rápidas para que tomes decisión.</p>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>¿Funciona para varias empresas o entidades?</summary>
+          <p>Sí. FactuPro está diseñado como SaaS multiempresa, con datos y configuración separados por entidad.</p>
+        </details>
+
+        <details>
+          <summary>¿Puedo manejar roles y permisos?</summary>
+          <p>Sí. Puedes definir permisos por módulo y acciones (según tu diseño).</p>
+        </details>
+
+        <details>
+          <summary>¿Incluye reportes?</summary>
+          <p>Sí. Ventas, impuestos, estado de emisión y reportes operativos. Se puede ampliar.</p>
+        </details>
+
+        <details>
+          <summary>¿Cómo es la implementación?</summary>
+          <p>Se configura tu empresa, usuarios, secuenciales y parámetros. Luego capacitación y acompañamiento.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta" class="cta">
+    <div class="container-x cta-inner">
+      <div class="cta-left">
+        <h2>¿Listo para impulsar tu facturación?</h2>
+        <p>Déjanos tus datos y te contactamos para una demo guiada.</p>
+      </div>
+
+      <form class="cta-form" method="post" action="#">
+        <!-- si lo conectas con Django, pon action a tu endpoint -->
+        <div class="row g-2">
+          <div class="col-md-6">
+            <input class="form-control" placeholder="Nombre" required>
+          </div>
+          <div class="col-md-6">
+            <input class="form-control" placeholder="Teléfono" required>
+          </div>
+          <div class="col-12">
+            <input class="form-control" placeholder="Correo" type="email" required>
+          </div>
+          <div class="col-12">
+            <button class="btn-brand w-100" type="submit">
+              <i class="fa-solid fa-paper-plane"></i> Solicitar demo
+            </button>
+          </div>
+        </div>
+
+        <small class="cta-note">
+          Al enviar aceptas nuestros términos y políticas.
+        </small>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container-x footer-inner">
+      <div>
+        <div class="brand foot-brand">
+          <span class="brand-mark"></span>
+          <span class="brand-name">FactuPro</span>
+        </div>
+        <p class="foot-text">Facturación electrónica moderna para Ecuador.</p>
+      </div>
+
+      <div class="foot-links">
+        <a href="#features">Beneficios</a>
+        <a href="#pricing">Precios</a>
+        <a href="#faq">FAQ</a>
+        <a href="{% url 'factupro' %}" target="_blank">Ingresar</a>
+      </div>
+    </div>
+
+    <div class="foot-bottom">
+      <small>© {{ year|default:"2026" }} FactuPro. Todos los derechos reservados.</small>
+    </div>
+  </footer>
+
+  <script src="{% static 'factupro/web.js' %}?v=1"></script>
+</body>
+</html>

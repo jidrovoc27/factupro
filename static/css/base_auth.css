@@ -1,0 +1,239 @@
+:root {
+    --bg: #f7f8fb;
+    --card: #ffffff;
+    --line: #e9edf3;
+    --text: #222;
+    --muted: #6c757d;
+    --brand: #0d9488;
+    --shadow: 0 8px 24px rgba(15, 23, 42, .08);
+    --radius: 18px;
+}
+
+body {
+    background: radial-gradient(circle at 85% 10%, rgba(255, 122, 0, .12), rgba(255, 122, 0, 0) 45%),
+    radial-gradient(circle at 20% 90%, rgba(0, 0, 0, .03), rgba(0, 0, 0, 0) 40%),
+    var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: var(--text);
+}
+
+.auth-wrap {
+    width: 100%;
+    max-width: 980px;
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: 18px;
+    align-items: stretch;
+}
+
+.brand-card, .login-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.brand-card {
+    padding: 26px;
+    position: relative;
+}
+
+.brand-card::after {
+    content: "";
+    position: absolute;
+    right: -140px;
+    top: -140px;
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle at center, rgba(255, 122, 0, .18), rgba(255, 122, 0, 0));
+    transform: rotate(12deg);
+}
+
+.brand-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 1;
+}
+
+.logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(255, 122, 0, .15), rgba(255, 122, 0, .03));
+    border: 1px solid rgba(255, 122, 0, .25);
+    color: var(--brand);
+    font-weight: 900;
+}
+
+.brand-title {
+    line-height: 1.05;
+}
+
+.brand-title b {
+    display: block;
+    font-size: 16px;
+}
+
+.brand-title small {
+    display: block;
+    color: var(--muted);
+    letter-spacing: .10em;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+.headline {
+    font-size: 28px;
+    font-weight: 900;
+    margin: 10px 0 8px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.subhead {
+    color: var(--muted);
+    margin: 0 0 18px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fbfcff;
+    color: #334155;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.pill i {
+    color: var(--brand);
+}
+
+.login-card {
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-title {
+    font-weight: 900;
+    margin-bottom: 4px;
+    font-size: 20px;
+}
+
+.login-sub {
+    color: var(--muted);
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+.form-control {
+    border-radius: 14px;
+    padding: 12px 12px;
+    border: 1px solid var(--line);
+}
+
+.form-control:focus {
+    border-color: rgba(255, 122, 0, .55);
+    box-shadow: 0 0 0 .25rem rgba(255, 122, 0, .12);
+}
+
+.btn-brand {
+    background-color: var(--brand) !important;
+    border-color: var(--brand) !important;
+    color: #fff !important;
+
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-weight: 800;
+
+    transition: all .15s ease;
+}
+
+.btn-brand:hover,
+.btn-brand:focus,
+.btn-brand:active {
+    background-color: var(--brand) !important;
+    border-color: var(--brand) !important;
+    color: #fff !important;
+
+    filter: brightness(0.95);
+    box-shadow: 0 0 0 .25rem rgba(0, 0, 0, .05);
+}
+
+.btn-brand:disabled {
+    background-color: #94a3b8 !important;
+    border-color: #94a3b8 !important;
+    color: #fff !important;
+    cursor: not-allowed;
+}
+
+.icon-input {
+    position: relative;
+}
+
+.icon-input i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: #9aa4b2;
+    pointer-events: none;
+}
+
+.icon-input input {
+    padding-left: 40px;
+}
+
+.muted-link {
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.muted-link:hover {
+    text-decoration: underline;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #94a3b8;
+    font-size: 12px;
+    margin: 14px 0;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+}
+
+@media (max-width: 992px) {
+    .auth-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .brand-card {
+        display: none;
+    }
+}
