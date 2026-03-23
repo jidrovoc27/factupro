@@ -16,11 +16,11 @@ OPCIONES_RESPUESTA = (
 )
 
 TIPO_EVALUACION_CHOICES = (
-    ("INGRESO", "Ingreso"),
-    ("PERIODICO", "Periódico"),
-    ("REINTEGRO", "Reintegro"),
-    ("RETIRO", "Retiro"),
-    ("OTRO", "Otro"),
+    (1, "Ingreso"),
+    (2, "Periódico"),
+    (3, "Reintegro"),
+    (4, "Retiro"),
+    (5, "Otro"),
 )
 
 APTITUD_MEDICA = (

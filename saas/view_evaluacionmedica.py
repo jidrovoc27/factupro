@@ -565,6 +565,10 @@ def view(request):
                     "antecedentes": [], "incidentes": [], "actividades": [],
                     "examenes": [], "diagnosticos": [], "certificado": {}
                 })
+                data['TIPO_EVALUACION_CHOICES'] = TIPO_EVALUACION_CHOICES
+                data['APTITUD_MEDICA'] = APTITUD_MEDICA
+                data['RESPUESTA_SIMPLE'] = RESPUESTA_SIMPLE
+                data['OPCIONES_RESPUESTA'] = OPCIONES_RESPUESTA
 
                 template = get_template("sistemamedico/evaluacionmedica/evaluacion_tabs.html")
                 return JsonResponse({"result": True, "data": template.render(data, request)})
