@@ -64,7 +64,7 @@ $(function () {
     return 'No se pudo completar la operación. Intente nuevamente.';
   }
 
-  $('form:not([method=GET], [method=get])').on('submit', function (e) {
+  $('formc:not([method=GET], [method=get])').on('submit', function (e) {
     e.preventDefault();
 
     const $form = $(this);

@@ -1,0 +1,272 @@
+{% extends "base/base.html" %}
+
+{% block extra_css %}
+    <style>
+        .modal-dialog-scrollable .modal-content {
+            max-height: calc(100vh - 2rem);
+        }
+
+        .modal-dialog-scrollable .modal-body {
+            overflow-y: auto !important;
+            max-height: calc(100vh - 200px) !important;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-0">{{ title }}</h4>
+            <small class="text-muted">Gestión de Evaluaciones FEMO</small>
+        </div>
+        <button class="btn btn-primary" onclick="formModal('addevaluacion', 0)">
+            <i class="fa fa-plus"></i> Nueva evaluación
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                    <tr>
+                        <th style="width:110px;">Cod</th>
+                        <th style="width:110px;">Fecha</th>
+                        <th>Persona</th>
+                        <th>Profesional</th>
+                        <th style="width:120px;">Tipo</th>
+                        <th style="width:140px;">Historia</th>
+                        <th style="width:240px;">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for e in listado %}
+                        <tr>
+                            <td>{{ e.id }}</td>
+                            <td>{{ e.fecha_creacion }}</td>
+
+                            <td>
+                                <div class="fw-semibold">
+                                    {{ e.persona }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">
+                                    {{ e.profesional.persona|default:"-" }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-info">{{ e.get_tipo_evaluacion_display }}</span>
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">HC: {{ e.numero_historia_clinica|default:"-" }}</div>
+                                <small class="text-muted">Arch: {{ e.numero_archivo|default:"-" }}</small>
+                            </td>
+
+                            <td class="text-nowrap">
+
+                                <!-- 1) Ver resumen (solo lectura) -->
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        onclick="formModal('ver_evaluacion', '{{ e.id }}')">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+
+                                <!-- 2) Editar evaluación completa -->
+                                <button class="btn btn-sm btn-warning"
+                                        onclick="formModal('editevaluacion', '{{ e.id }}')">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+
+                                <!-- 3) Menú: secciones N -->
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fa fa-list"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)"
+                                               onclick="openDetailModal('list_antecedentes','{{ e.id }}')">
+                                                Antecedentes laborales (N)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)"
+                                               onclick="openDetailModal('list_incidentes','{{ e.id }}')">
+                                                Incidentes / accidentes (N)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)"
+                                               onclick="openDetailModal('list_actividades','{{ e.id }}')">
+                                                Actividades extralaborales (N)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)"
+                                               onclick="openDetailModal('list_examenes','{{ e.id }}')">
+                                                Exámenes (N)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)"
+                                               onclick="openDetailModal('list_diagnosticos','{{ e.id }}')">
+                                                Diagnósticos (N)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)"
+                                               onclick="openDetailModal('view_certificado','{{ e.id }}')">
+                                                Certificado / Aptitud
+                                            </a>
+                                        </li>
+                                        <li>
+                                             <a class="dropdown-item" target="_blank" href="/evaluacionmedica?action=generar_femo&id={{ e.id }}">
+                                                Generar FEMO
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- 4) Eliminar -->
+                                <button class="btn btn-sm btn-danger"
+                                        onclick="eliminarRegistro('delevaluacion','{{ e.id }}')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6">Sin registros</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal container -->
+    <div class="modal fade" id="modalForm" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-sm-down">
+            <div class="modal-content" id="modalFormContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let deletedAntecedentes = [];
+    let deletedIncidentes = [];
+    let deletedActividades = [];
+    let deletedExamenes = [];
+    let deletedDiagnosticos = [];
+        // ✅ Solo una vez
+        $(document).off("submit", "#formModal");
+        $(document).on("submit", "#formModal", function (e) {
+            e.preventDefault();
+
+            // (1) Llenar JSON antes de enviar
+            $("#antecedentes_json").val(JSON.stringify(collectAntecedentes()));
+            $("#incidentes_json").val(JSON.stringify(collectIncidentes()));
+            $("#actividades_json").val(JSON.stringify(collectActividades()));
+            $("#examenes_json").val(JSON.stringify(collectExamenes()));
+            $("#diagnosticos_json").val(JSON.stringify(collectDiagnosticos()));
+            $("#certificado_json").val(JSON.stringify(collectCertificado()));
+
+            // deleted
+            $("#antecedentes_deleted").val(JSON.stringify(deletedAntecedentes || []));
+            $("#incidentes_deleted").val(JSON.stringify(deletedIncidentes || []));
+            $("#actividades_deleted").val(JSON.stringify(deletedActividades || []));
+            $("#examenes_deleted").val(JSON.stringify(deletedExamenes || []));
+            $("#diagnosticos_deleted").val(JSON.stringify(deletedDiagnosticos || []));
+
+            // (2) Evitar doble click y doble envío
+            const btn = $(this).find('button[type="submit"]');
+            btn.prop("disabled", true);
+
+            $.post("", $(this).serialize(), function (r) {
+                if (!r.result) location.reload();
+                else {
+                    alert(r.mensaje);
+                    btn.prop("disabled", false);
+                }
+            }).fail(function () {
+                btn.prop("disabled", false);
+            });
+        });
+
+        function formModal(action, id) {
+            let url = `?action=${action}`;
+            if (id) url += `&id=${id}`;
+
+            $.get(url, function (resp) {
+                if (resp.result) {
+                    $("#modalFormContent").empty().html(resp.data);
+                    $("#modalForm").modal("show");
+                    initFormBS5(document.getElementById("modalFormContent"));
+                } else {
+                    alert(resp.mensaje || "Error");
+                }
+            });
+        }
+
+
+        function openDetailModal(action, evaluacion_id) {
+            let url = `?action=${action}&evaluacion_id=${evaluacion_id}`;
+            $.get(url, function (resp) {
+                if (resp.result) {
+                    $("#modalFormContent").html(resp.data);
+                    $("#modalForm").modal("show");
+                    initFormBS5(document.getElementById("modalFormContent"));
+
+                    const form = document.getElementById("formModal");
+                    if (form) {
+                        $(form).off("submit").on("submit", function (e) {
+                            e.preventDefault();
+                            $.post("", $(this).serialize(), function (r) {
+                                if (!r.result) location.reload();
+                                else alert(r.mensaje);
+                            });
+                        });
+                    }
+                } else {
+                    alert(resp.mensaje || "Error");
+                }
+            });
+        }
+
+        function eliminarRegistro(action, id) {
+            $.post("", {'action': action, 'id': id, 'csrfmiddlewaretoken': '{{ csrf_token }}'}, function (r) {
+                if (!r.error) location.reload();
+                else alert(r.mensaje);
+            });
+        }
+
+        function initFormBS5(scope) {
+            const root = scope || document;
+            root.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.type === 'hidden' || el.name === 'csrfmiddlewaretoken') return;
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    el.classList.add('form-check-input');
+                    return;
+                }
+                if (el.tagName.toLowerCase() === 'select') el.classList.add('form-select');
+                else el.classList.add('form-control');
+                el.classList.add('w-100');
+            });
+        }
+    </script>
+
+{% endblock %}

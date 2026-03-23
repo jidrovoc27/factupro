@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, logout, login
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
-from saas.models import Persona, Modulo, ModuloGrupo, CategoriaModulo
+from saas.models import Persona, Modulo, ModuloGrupo, CategoriaModulo, ProfesionalSalud
 from base.funciones import obtener_ip_cliente_actual
 from sistemamedico.settings import DEBUG
 from sistemamedico import settings
@@ -65,6 +65,8 @@ def act_info(request, data):
             raise Exception('Sesión inválida: persona no encontrada')
 
     data['persona_sesion'] = persona_sesion
+    data['profesional_'] = profesional_ = ProfesionalSalud.objects.filter(status=True, persona_id=request.session.get('persona_id')).first()
+    data['modulos'] = modulos = Modulo.objects.filter(status=True)
 
     # -------------------------
     # 2) Parámetros de GET (sin romper)
@@ -157,10 +159,10 @@ def login_user(request):
     request.session.set_expiry(240 * 60)
 
     # client_id de apoyo
-    if 'client_id' not in request.session:
-        sid = request.COOKIES.get('sessionid')
-        if sid:
-            request.session['client_id'] = sid
+    # if 'client_id' not in request.session:
+    #     sid = request.COOKIES.get('sessionid')
+    #     if sid:
+    #         request.session['client_id'] = sid
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -206,7 +208,8 @@ def login_user(request):
             request.session['ipreal'] = obtener_ip_cliente_actual(request)
 
             # 5) Loguear
-            login(request, user_login)
+            if user_login is not None:
+                login(request, user_login)
 
             request.session['persona_id'] = persona_.id
 

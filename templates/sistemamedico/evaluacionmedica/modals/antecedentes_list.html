@@ -1,0 +1,48 @@
+<div class="modal-header">
+  <h5 class="modal-title">Antecedentes laborales</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+  <div class="mb-2">
+    <div class="fw-semibold">{{ evaluacion.trabajador.persona.razon_social }}</div>
+    <small class="text-muted">Fecha: {{ evaluacion.fecha_atencion|date:"Y-m-d" }}</small>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Empresa</th>
+          <th>Puesto</th>
+          <th>Actividad</th>
+          <th>Tiempo</th>
+          <th>Riesgos</th>
+          <th>EPP</th>
+          <th>Obs.</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for a in antecedentes %}
+        <tr>
+          <td>{{ a.empresa }}</td>
+          <td>{{ a.puesto }}</td>
+          <td style="min-width:220px;">{{ a.actividad }}</td>
+          <td>{{ a.tiempo }}</td>
+          <td style="min-width:220px;">{{ a.riesgos }}</td>
+          <td style="min-width:220px;">{{ a.epp }}</td>
+          <td style="min-width:220px;">{{ a.observaciones }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7">Sin registros</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button class="btn btn-light" data-bs-dismiss="modal">
+    <i class="fa fa-times"></i> Cerrar
+  </button>
+</div>

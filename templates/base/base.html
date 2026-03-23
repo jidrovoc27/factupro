@@ -28,6 +28,7 @@
 
     <!-- SOLO ESTE -->
     <script src="/static/basescript.js"></script>
+
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -47,77 +48,13 @@
         </div>
 
         <nav class="menu">
-            <a href="#" class="{% block nav_academia %}{% endblock %}">
+            {% for modulo_ in modulos %}
+                <a href="/{{ modulo_.url }}" class="{% block nav_academia %}{% endblock %}">
                 <i class="fa-solid fa-sliders"></i>
-                <span>Academia</span>
+                <span>{{ modulo_.nombre }}</span>
                 <i class="fa-solid fa-chevron-right chev"></i>
             </a>
-
-            <a href="#" class="{% block nav_admin %}{% endblock %}">
-                <i class="fa-regular fa-folder"></i>
-                <span>Administración</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_admision %}{% endblock %}">
-                <i class="fa-regular fa-clipboard"></i>
-                <span>Admisión</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_costos %}{% endblock %}">
-                <i class="fa-solid fa-landmark"></i>
-                <span>Centro de Costos</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_comercial %}{% endblock %}">
-                <i class="fa-solid fa-bullhorn"></i>
-                <span>Comercial</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_datos %}{% endblock %}">
-                <i class="fa-regular fa-circle-user"></i>
-                <span>Datos generales</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_eval %}{% endblock %}">
-                <i class="fa-regular fa-eye"></i>
-                <span>Evaluación docente</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_fin %}{% endblock %}">
-                <i class="fa-regular fa-credit-card"></i>
-                <span>Financiero</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_firmas %}{% endblock %}">
-                <i class="fa-solid fa-pen-to-square"></i>
-                <span>Firmar actas</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_sniese %}{% endblock %}">
-                <i class="fa-regular fa-square-check"></i>
-                <span>Proceso SNIESE</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_reportes %}{% endblock %}">
-                <i class="fa-regular fa-calendar"></i>
-                <span>Reportería</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
-
-            <a href="#" class="{% block nav_repo %}{% endblock %}">
-                <i class="fa-regular fa-folder-open"></i>
-                <span>Repositorio digital</span>
-                <i class="fa-solid fa-chevron-right chev"></i>
-            </a>
+            {% endfor %}
         </nav>
     </aside>
 
@@ -163,10 +100,13 @@
                 </div>
             </section>
 
-            <!-- Contenido -->
-            {% block content %}
-                <!-- por defecto vacío -->
-            {% endblock %}
+            <main class="container-fluid py-3">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</main>
 
             <div class="footer">
                 Copyright © Designed &amp; Developed

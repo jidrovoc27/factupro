@@ -1,0 +1,1157 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>FEMO</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 8mm 8mm 10mm 8mm;
+        }
+
+        html, body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 7.5px;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .page {
+            position: relative;
+            width: 100%;
+            page-break-after: always;
+        }
+
+        .sec-title {
+            background: #1e4e7c;
+            color: #fff;
+            font-weight: 700;
+            font-size: 7.5px;
+            padding: 2px 4px;
+            text-transform: uppercase;
+        }
+
+        .sub-title {
+            background: #c6efce;
+            font-weight: 700;
+            font-size: 7px;
+            padding: 1px 3px;
+            text-transform: uppercase;
+        }
+
+        .col-hdr {
+            background: #c6efce;
+            font-weight: 700;
+            font-size: 6.5px;
+            text-align: center;
+            padding: 1px 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        td, th {
+            border: 0.4px solid #aaa;
+            padding: 1px 2px;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .bold {
+            font-weight: 700;
+        }
+
+        .field-lbl {
+            font-size: 6px;
+            color: #555;
+        }
+
+        .section {
+            margin-bottom: 3px;
+        }
+
+        .rotated {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            text-align: center;
+            font-size: 6.5px;
+            font-weight: 700;
+            padding: 2px 0;
+            white-space: nowrap;
+        }
+
+        .data-row td {
+            height: 12px;
+        }
+
+        .data-row2 td {
+            height: 18px;
+        }
+
+        .data-row3 td {
+            height: 28px;
+        }
+
+        .cb {
+            display: inline-block;
+            border: 0.6px solid #555;
+            width: 8px;
+            height: 8px;
+            text-align: center;
+            line-height: 8px;
+            font-size: 7px;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 6px;
+            color: #666;
+            margin-top: 4px;
+            border-top: 0.4px solid #aaa;
+            padding-top: 1px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- =====================================================
+     PÁGINA 1
+===================================================== -->
+<div class="page">
+
+    <div class="sec-title"
+         style="text-align:center; font-weight:700; font-size:9px; border:0.5px solid #aaa; padding:3px; margin-bottom:3px;">
+        FORMULARIO DE EVALUACIÓN MÉDICA OCUPACIONAL
+    </div>
+
+    <!-- A -->
+    <div class="section">
+        <div class="sec-title">A. DATOS DEL ESTABLECIMIENTO - DATOS DEL USUARIO</div>
+        <table>
+            <tr>
+                <td style="width:22%" class="col-hdr">INSTITUCIÓN DEL SISTEMA</td>
+                <td style="width:11%" class="col-hdr">RUC</td>
+                <td style="width:8%" class="col-hdr">CIIU</td>
+                <td style="width:28%" class="col-hdr">ESTABLECIMIENTO /CENTRO DE TRABAJO</td>
+                <td style="width:21%" class="col-hdr">NÚMERO DE HISTORIA CLÍNICA</td>
+                <td style="width:10%" class="col-hdr">NÚMERO DE ARCHIVO</td>
+            </tr>
+            <tr class="data-row">
+                <td>{{ ev.institucion_sistema|default_if_none:"" }}</td>
+                <td>{{ ev.ruc|default_if_none:"" }}</td>
+                <td>{{ ev.ciu|default_if_none:"" }}</td>
+                <td>{{ ev.establecimiento_trabajo|default_if_none:"" }}</td>
+                <td>{{ ev.numero_historia_clinica|default_if_none:"" }}</td>
+                <td>{{ ev.numero_archivo|default_if_none:"" }}</td>
+            </tr>
+            <tr>
+                <td colspan="2" class="col-hdr">PRIMER APELLIDO</td>
+                <td colspan="2" class="col-hdr">SEGUNDO APELLIDO</td>
+                <td class="col-hdr">PRIMER NOMBRE</td>
+                <td class="col-hdr">SEGUNDO NOMBRE</td>
+            </tr>
+            <tr class="data-row">
+                <td colspan="2">{{ ev.persona.primerapellido|default_if_none:"" }}</td>
+                <td colspan="2">{{ ev.persona.segundoapellido|default_if_none:"" }}</td>
+                <td>{{ ev.persona.nombres|default_if_none:"" }}</td>
+                <td>{{ ev.persona.segundonombre|default_if_none:"" }}</td>
+            </tr>
+        </table>
+        <!-- Grupo atención / Sexo / Fecha nacimiento / Grupo sanguíneo / Lateralidad -->
+        <table>
+            <tr>
+                <td style="width:26%" class="col-hdr" colspan="4">GRUPO DE ATENCIÓN PRIORITARIA</td>
+                <td style="width:13%" class="col-hdr" colspan="2">SEXO</td>
+                <td style="width:17%" class="col-hdr" colspan="3">FECHA DE NACIMIENTO</td>
+                <td style="width:5%" class="col-hdr">Edad</td>
+                <td style="width:22%" class="col-hdr">GRUPO SANGUÍNEO</td>
+                <td style="width:17%" class="col-hdr">LATERALIDAD</td>
+            </tr>
+            <tr style="font-size:6.5px">
+                <td style="width:7%; text-align:center; font-size:6px">Embarazada</td>
+                <td style="width:7%; text-align:center; font-size:6px">Persona con Discapacidad</td>
+                <td style="width:7%; text-align:center; font-size:6px">Enfermedad Catastrófica</td>
+                <td style="width:5%; text-align:center; font-size:6px">Adulto Mayor</td>
+                <td style="width:6.5%; text-align:center">Hombre</td>
+                <td style="width:6.5%; text-align:center">Mujer</td>
+                <td style="width:5.7%; text-align:center">{{ ev.persona.fecha_nacimiento|date:"Y"|default_if_none:"" }}<br><span
+                        style="font-size:5.5px">año</span></td>
+                <td style="width:5.7%; text-align:center">{{ ev.persona.fecha_nacimiento|date:"m"|default_if_none:"" }}<br><span
+                        style="font-size:5.5px">mes</span></td>
+                <td style="width:5.7%; text-align:center">{{ ev.persona.fecha_nacimiento|date:"d"|default_if_none:"" }}<br><span
+                        style="font-size:5.5px">día</span></td>
+                <td style="width:5%; text-align:center">{{ ev.persona.edad|default_if_none:"" }}</td>
+                <td style="width:22%; text-align:center">{{ ev.persona.grupo_sanguineo|default_if_none:"" }}</td>
+                <td style="width:17%; text-align:center">{{ ev.persona.lateralidad|default_if_none:"" }}</td>
+            </tr>
+            <tr class="data-row" style="font-size:7px; text-align:center">
+                <td>{{ ev.grupo_atencion_prioritaria_embarazada|default_if_none:"" }}</td>
+                <td>{{ ev.grupo_atencion_prioritaria_discapacidad|default_if_none:"" }}</td>
+                <td>{{ ev.grupo_atencion_prioritaria_catastrofica|default_if_none:"" }}</td>
+                <td>{{ ev.grupo_atencion_prioritaria_adulto_mayor|default_if_none:"" }}</td>
+                <td><span class="cb">{% if ev.persona.sexo == 'M' %}X{% endif %}</span></td>
+                <td><span class="cb">{% if ev.persona.sexo == 'F' %}X{% endif %}</span></td>
+                <td colspan="3"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- B -->
+    <div class="section">
+        <div class="sec-title">B. MOTIVO DE CONSULTA</div>
+        <table>
+            <tr class="data-row">
+                <td style="width:35%">
+                    <div class="field-lbl">Puesto de Trabajo CIUO</div>
+                    {{ ev.puesto_trabajo_ciu|default_if_none:"" }}
+                </td>
+                <td style="width:33%">
+                    <div class="field-lbl">Fecha de Atención aaaa/mm/dd</div>
+                    {{ ev.fecha_atencion|date:"Y/m/d" }}
+                </td>
+                <td style="width:32%"></td>
+            </tr>
+            <tr class="data-row">
+                <td>
+                    <div class="field-lbl">Fecha de Ingreso al trabajo aaaa/mm/dd</div>
+                    {{ ev.fecha_ingreso_trabajo|date:"Y/m/d" }}
+                </td>
+                <td>
+                    <div class="field-lbl">Fecha de Reintegro aaaa/mm/dd</div>
+                    {{ ev.fecha_reintegro|date:"Y/m/d" }}
+                </td>
+                <td>
+                    <div class="field-lbl">Fecha del Último día laboral/salida aaaa/mm/dd</div>
+                    {{ ev.fecha_ultimo_dia_laboral|date:"Y/m/d" }}
+                </td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td style="width:15%" class="sub-title bold">TIPO DE EVALUACIÓN</td>
+                <td style="width:21%" class="col-hdr">INGRESO</td>
+                <td style="width:21%" class="col-hdr">PERIÓDICO</td>
+                <td style="width:21%" class="col-hdr">REINTEGRO</td>
+                <td style="width:22%" class="col-hdr">RETIRO</td>
+            </tr>
+            <tr class="data-row center">
+                <td></td>
+                <td><span class="cb">{% if ev.tipo_evaluacion == "INGRESO" %}X{% endif %}</span></td>
+                <td><span class="cb">{% if ev.tipo_evaluacion == "PERIODICO" %}X{% endif %}</span></td>
+                <td><span class="cb">{% if ev.tipo_evaluacion == "REINTEGRO" %}X{% endif %}</span></td>
+                <td><span class="cb">{% if ev.tipo_evaluacion == "RETIRO" %}X{% endif %}</span></td>
+            </tr>
+            <tr>
+                <td colspan="5" class="field-lbl" style="border-top:none">Observación</td>
+            </tr>
+            <tr class="data-row">
+                <td colspan="5">{{ ev.motivo_consulta|default_if_none:"" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- C -->
+    <div class="section">
+        <div class="sec-title">C. ANTECEDENTES PERSONALES</div>
+
+        <div class="sub-title">ANTECEDENTES CLÍNICOS Y QUIRÚRGICOS</div>
+        <table>
+            <tr class="data-row2">
+                <td>
+                    <span class="field-lbl">Descripción</span><br>{{ ev.antecedentes_clinico_quirurgicos|default_if_none:"" }}
+                </td>
+            </tr>
+        </table>
+
+        <div class="sub-title">ANTECEDENTES FAMILIARES</div>
+        <table>
+            <tr class="data-row2">
+                <td>
+                    <span class="field-lbl">Descripción</span><br>{{ ev.antecedentes_familiares|default_if_none:"" }}
+                </td>
+            </tr>
+        </table>
+
+        <table>
+            <tr style="font-size:6.5px">
+                <td style="width:38%">Condición especial para las atenciones de urgencia, emergencia, y tratamiento
+                    médico (referido por el paciente).
+                </td>
+                <td style="width:5%" class="col-hdr">SI</td>
+                <td style="width:5%" class="col-hdr">NO</td>
+                <td style="width:30%">Se encuentra bajo algún tratamiento hormonal</td>
+                <td style="width:5%" class="col-hdr">SI</td>
+                <td style="width:10%" class="col-hdr">¿Cuál? Describir</td>
+                <td style="width:5%" class="col-hdr">NO</td>
+            </tr>
+            <tr class="data-row center" style="font-size:7px">
+                <td style="text-align:left">En caso de requerir transfusiones autoriza:</td>
+                <td><span class="cb">{% if ev.requiere_transfusiones %}X{% endif %}</span></td>
+                <td><span class="cb">{% if ev.requiere_transfusiones == False %}X{% endif %}</span></td>
+                <td></td>
+                <td><span class="cb">{% if ev.tratamiento_hormonal %}X{% endif %}</span></td>
+                <td style="text-align:left">{{ ev.tratamiento_hormonal_cual|default_if_none:"" }}</td>
+                <td><span class="cb">{% if ev.tratamiento_hormonal == False %}X{% endif %}</span></td>
+            </tr>
+        </table>
+
+        <div class="sub-title">ANTECEDENTES GINECO OBSTÉTRICOS</div>
+        <table style="font-size:6.5px">
+            <tr>
+                <td style="width:20%" class="col-hdr">FECHA DE LA ÚLTIMA MENSTRUACIÓN</td>
+                <td style="width:10%" class="col-hdr">aaaa/mm/dd</td>
+                <td style="width:8%" class="col-hdr">GESTAS</td>
+                <td style="width:8%" class="col-hdr">PARTOS</td>
+                <td style="width:9%" class="col-hdr">CESÁREAS</td>
+                <td style="width:9%" class="col-hdr">ABORTOS</td>
+                <td style="width:18%" class="col-hdr" colspan="4">MÉTODO DE PLANIFICACION FAMILIAR</td>
+            </tr>
+            <tr class="data-row center">
+                <td colspan="2">{{ ev.fecha_ultima_menstruacion|date:"Y/m/d"|default_if_none:"" }}</td>
+                <td>{{ ev.gestas|default_if_none:"" }}</td>
+                <td>{{ ev.partos|default_if_none:"" }}</td>
+                <td>{{ ev.cesareas|default_if_none:"" }}</td>
+                <td>{{ ev.abortos|default_if_none:"" }}</td>
+                <td style="width:5%"><span class="cb">{% if ev.planificacion_familiar == "SI" %}
+                    X{% endif %}</span><br><span style="font-size:5.5px">SI</span></td>
+                <td style="width:13%; text-align:left">{{ ev.planificacion_familiar_cual|default_if_none:"" }}</td>
+                <td style="width:5%"><span class="cb">{% if ev.planificacion_familiar == "NO" %}
+                    X{% endif %}</span><br><span style="font-size:5.5px">no</span></td>
+                <td style="width:5%"><span class="cb">{% if ev.planificacion_familiar == "NR" %}
+                    X{% endif %}</span><br><span style="font-size:5.5px">no responde</span></td>
+            </tr>
+        </table>
+        <table style="font-size:6.5px">
+            <tr>
+                <td style="width:25%" class="col-hdr">EXÁMENES REALIZADOS ¿CUÁL?</td>
+                <td style="width:15%" class="col-hdr">TIEMPO (años)</td>
+                <td style="width:60%; font-style:italic; font-size:6px">Registrar resultado únicamente si interfiere con
+                    la actividad laboral y previa autorización del titular
+                </td>
+            </tr>
+            <tr class="data-row2">
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+
+        <div class="sub-title">ANTECEDENTES REPRODUCTIVOS MASCULINOS</div>
+        <table style="font-size:6.5px">
+            <tr>
+                <td style="width:25%" class="col-hdr">EXÁMENES REALIZADOS ¿CUÁL?</td>
+                <td style="width:10%" class="col-hdr">TIEMPO (años)</td>
+                <td style="width:35%; font-style:italic; font-size:6px">Registrar resultado únicamente si interfiere con
+                    la actividad laboral y previa autorización del titular
+                </td>
+                <td style="width:5%" class="col-hdr">SI</td>
+                <td style="width:10%" class="col-hdr">¿CUÁL?</td>
+                <td style="width:5%" class="col-hdr">NO</td>
+                <td style="width:10%" class="col-hdr">NO RESPONDE</td>
+            </tr>
+            <tr class="data-row2">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+
+        <!-- Consumo / Estilo vida / Condición preexistente -->
+        <table style="font-size:6.5px">
+            <tr>
+                <td style="width:30%" class="sub-title" colspan="5">CONSUMO DE SUSTANCIAS</td>
+                <td style="width:28%" class="sub-title" colspan="3">ESTILO DE VIDA</td>
+                <td style="width:30%" class="sub-title" colspan="3">CONDICIÓN PREEXISTENTE</td>
+            </tr>
+            <tr>
+                <td style="width:9%"></td>
+                <td style="width:7%" class="col-hdr">TIEMPO DE CONSUMO</td>
+                <td style="width:7%" class="col-hdr">EX CONSUMIDOR</td>
+                <td style="width:7%" class="col-hdr">TIEMPO DE ABSTINENCIA (meses)</td>
+                <td style="width:7%" class="col-hdr">NO CONSUME</td>
+                <td style="width:10%" class="col-hdr">ACTIVIDAD FÍSICA</td>
+                <td style="width:10%" class="col-hdr">¿CUÁL?</td>
+                <td style="width:8%" class="col-hdr">TIEMPO</td>
+                <td style="width:12%" class="col-hdr">MEDICACIÓN HABITUAL</td>
+                <td style="width:12%" class="col-hdr">¿CUÁL?</td>
+                <td style="width:11%" class="col-hdr">CANTIDAD</td>
+            </tr>
+            <tr class="data-row">
+                <td class="bold">TABACO</td>
+                <td>{{ ev.tabaco_detalle|default_if_none:"" }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td rowspan="3">{{ ev.actividad_fisica|default_if_none:"" }}</td>
+                <td rowspan="3"></td>
+                <td rowspan="3">{{ ev.actividad_fisica_tiempo|default_if_none:"" }}</td>
+                <td rowspan="3">{{ ev.medicacion_habitual|default_if_none:"" }}</td>
+                <td rowspan="3">{{ ev.condicion_preexistente|default_if_none:"" }}</td>
+                <td rowspan="3">{{ ev.condicion_preexistente_cantidad|default_if_none:"" }}</td>
+            </tr>
+            <tr class="data-row">
+                <td class="bold">ALCOHOL</td>
+                <td>{{ ev.alcohol_detalle|default_if_none:"" }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr class="data-row">
+                <td class="bold" style="font-size:6.5px">OTRAS: ¿Cuál?</td>
+                <td>{{ ev.drogas_detalle|default_if_none:"" }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="11" style="font-size:6px">Observación: {{ ev.consumo_observacion|default_if_none:"" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- D -->
+    <div class="section">
+        <div class="sec-title">D. ENFERMEDAD O PROBLEMA ACTUAL</div>
+        <table>
+            <tr class="data-row2">
+                <td>
+                    <span class="field-lbl">Descripción</span><br>{{ ev.enfermedad_problema_actual|default_if_none:"" }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- E -->
+    <div class="section">
+        <div class="sec-title">E. CONSTANTES VITALES Y ANTROPOMETRÍA</div>
+        <table>
+            <tr>
+                <td class="col-hdr">TEMPERATURA (°C)</td>
+                <td class="col-hdr">PRESIÓN ARTERIAL (mmHg)</td>
+                <td class="col-hdr">FRECUENCIA CARDIACA (Lat/min)</td>
+                <td class="col-hdr">FRECUENCIA RESPIRATORIA (fr/min)</td>
+                <td class="col-hdr">SATURACIÓN DE OXÍGENO (O2%)</td>
+                <td class="col-hdr">PESO (Kg)</td>
+                <td class="col-hdr">TALLA (cm)</td>
+                <td class="col-hdr">ÍNDICE DE MASA CORPORAL (kg/m2)</td>
+                <td class="col-hdr">PERÍMETRO ABDOMINAL (cm)</td>
+            </tr>
+            <tr class="data-row center">
+                <td>{{ ev.temperatura_c|default_if_none:"" }}</td>
+                <td>{{ ev.presion_arterial|default_if_none:"" }}</td>
+                <td>{{ ev.frecuencia_cardiaca|default_if_none:"" }}</td>
+                <td>{{ ev.frecuencia_respiratoria|default_if_none:"" }}</td>
+                <td>{{ ev.saturacion_oxigeno|default_if_none:"" }}</td>
+                <td>{{ ev.peso_kg|default_if_none:"" }}</td>
+                <td>{{ ev.talla_cm|default_if_none:"" }}</td>
+                <td>{{ ev.imc|default_if_none:"" }}</td>
+                <td>{{ ev.perimetro_abdominal_cm|default_if_none:"" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- F. EXAMEN FÍSICO REGIONAL -->
+    <div class="section">
+        <div class="sec-title">F. EXAMEN FÍSICO REGIONAL</div>
+        <div class="sub-title">REGIONES</div>
+        <table style="width:100%; border-collapse:collapse; font-size:7px;">
+
+            <tr>
+
+                <!-- 1 PIEL -->
+                <td rowspan="2" class="rot">1. Piel</td>
+                <td>a. Cicatrices</td>
+                <td></td>
+
+                <!-- 3 OIDO -->
+                <td rowspan="3" class="rot">3. Oído</td>
+                <td>a. C. auditivo externo</td>
+                <td></td>
+
+                <!-- 5 NARIZ -->
+                <td rowspan="4" class="rot">5. Nariz</td>
+                <td>a. Tabique</td>
+                <td></td>
+
+                <!-- 8 TORAX -->
+                <td rowspan="3" class="rot">8. Tórax</td>
+                <td>a. Pulmones</td>
+                <td></td>
+
+                <!-- 11 PELVIS -->
+                <td rowspan="2" class="rot">11. Pelvis</td>
+                <td>a. Pelvis</td>
+                <td></td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>b. Piel y Faneras</td>
+                <td></td>
+
+                <td>b. Pabellón</td>
+                <td></td>
+
+                <td>b. Cornetes</td>
+                <td></td>
+
+                <td>b. Corazón</td>
+                <td></td>
+
+                <td>b. Genitales</td>
+                <td></td>
+
+            </tr>
+
+
+            <tr>
+
+                <td rowspan="5" class="rot">2. Ojos</td>
+                <td>a. Párpados</td>
+                <td></td>
+
+                <td>c. Tímpanos</td>
+                <td></td>
+
+                <td>c. Mucosas</td>
+                <td></td>
+
+                <td>c. Parrilla costal</td>
+                <td></td>
+
+                <td rowspan="3" class="rot">12. Extr.</td>
+                <td>a. Vascular</td>
+                <td></td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>b. Conjuntivas</td>
+                <td></td>
+
+                <td rowspan="5" class="rot">4. Oro faringe</td>
+                <td>a. Labios</td>
+                <td></td>
+
+                <td>d. Senos paranasales</td>
+                <td></td>
+
+                <td rowspan="2" class="rot">9. Abdomen</td>
+                <td>a. Vísceras</td>
+                <td></td>
+
+                <td>b. Miembros superiores</td>
+                <td></td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>c. Pupilas</td>
+                <td></td>
+
+                <td>b. Lengua</td>
+                <td></td>
+
+                <td rowspan="2" class="rot">6. Cuello</td>
+                <td>a. Tiroides / masas</td>
+                <td></td>
+
+                <td>b. Pared abdominal</td>
+                <td></td>
+
+                <td>c. Miembros inferiores</td>
+                <td></td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>d. Córnea</td>
+                <td></td>
+
+                <td>c. Faringe</td>
+                <td></td>
+
+                <td>b. Movilidad</td>
+                <td></td>
+
+                <td rowspan="3" class="rot">10. Columna</td>
+                <td>a. Flexibilidad</td>
+                <td></td>
+
+                <td rowspan="4" class="rot">13. Neurológico</td>
+                <td>a. Fuerza</td>
+                <td></td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>e. Motilidad</td>
+                <td></td>
+
+                <td>d. Amígdalas</td>
+                <td></td>
+
+                <td rowspan="2" class="rot">7. Tórax</td>
+                <td rowspan="2">a. Mamas</td>
+                <td rowspan="2"></td>
+
+                <td>b. Desviación</td>
+                <td></td>
+
+                <td>b. Sensibilidad</td>
+                <td></td>
+
+            </tr>
+
+
+            <tr>
+
+                <td></td>
+                <td></td>
+
+                <td></td>
+                <td>e. Dentadura</td>
+                <td></td>
+                 <td>c. Dolor</td>
+                <td></td>
+                <td>d. Reflejos</td>
+                <td></td>
+
+
+            </tr>
+
+
+        </table>
+        <table style="margin-top:3px;width:100%;border-collapse:collapse;font-size:7px">
+            <tr>
+                <td style="border:1px solid #999;background:#fff6c7">
+                    SI EXISTE EVIDENCIA DE PATOLOGÍA MARCAR CON "X" Y DESCRIBIR EN LA SIGUIENTE SECCIÓN COLOCANDO EL
+                    NUMERAL
+                </td>
+            </tr>
+
+            <tr>
+                <td style="border:1px solid #999">
+                    <b>Observación:</b> {{ ev.examen_observacion }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        <span>SNS-MSP/HCU-form.123/2025</span>
+        <span>Evaluación Médica Ocupacional</span>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     PÁGINAS 2+ — G, H, I, J, K, L, M, N, O, P
+===================================================== -->
+{% for p in anexo2_pages %}
+
+    <!-- PÁGINA G: FACTORES DE RIESGO -->
+    <div class="page">
+        <div class="sec-title center">G. FACTORES DE RIESGO DEL TRABAJO ACTUAL</div>
+        <table style="font-size:6.5px; margin-top:2px">
+            <tr>
+                <td style="width:8%" class="col-hdr" colspan="2"></td>
+                <td style="width:27%" class="col-hdr bold">PUESTO DE TRABAJO</td>
+                <td style="width:9%" class="col-hdr center">1</td>
+                <td style="width:9%" class="col-hdr center">2</td>
+                <td style="width:9%" class="col-hdr center">3</td>
+                <td style="width:9%" class="col-hdr center">4</td>
+                <td style="width:9%" class="col-hdr center">5</td>
+                <td style="width:9%" class="col-hdr center">6</td>
+                <td style="width:9%" class="col-hdr center">7</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="border:none"></td>
+                <td class="col-hdr" style="font-size:6px">ACTIVIDADES IMPORTANTES DENTRO DE LA JORNADA LABORAL</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <!-- FÍSICO -->
+            {% for label in lista %}
+                <tr style="height:10px">
+                    {% if forloop.first %}
+                        <td rowspan="10" colspan="2" class="rotated bold" style="width:4%">FÍSICO</td>
+                    {% endif %}
+                    <td>{{ label }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            {% endfor %}
+
+            <!-- LOCATIVOS -->
+            <tr style="height:10px">
+                <td class="bold" colspan="2" style="width:4%">LOCATIVOS</td>
+                <td>Falta de señalización, aseo, desorden</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <!-- DE SEGURIDAD -->
+            {% for label in listaseguridad %}
+                <tr style="height:10px">
+                    {% if forloop.first %}
+                        <td rowspan="14" class="rotated bold" style="width:4%">DE SEGURIDAD</td>
+                        <td rowspan="12" class="rotated" style="width:10%; font-size:6px">MECÁNICOS</td>
+                    {% endif %}
+                    <td>{{ label }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            {% endfor %}
+            <tr style="height:10px">
+                <td class="bold" style="font-size:6.5px">ELÉCTRICOS</td>
+                <td>Contacto eléctrico</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr style="height:10px">
+                <td class="bold">OTROS</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <!-- QUÍMICO -->
+            {% for label in listaquimicos %}
+                <tr style="height:10px">
+                    {% if forloop.first %}
+                        <td rowspan="9" colspan="2" class="rotated bold" style="width:4%">QUÍMICO</td>
+                    {% endif %}
+                    <td>{{ label }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            {% endfor %}
+
+            <!-- BIOLÓGICO -->
+            {% for label in listabiologicos %}
+                <tr style="height:10px">
+                    {% if forloop.first %}
+                        <td rowspan="7" colspan="2" class="rotated bold" style="width:4%">BIOLÓGICO</td>
+                    {% endif %}
+                    <td>{{ label }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            {% endfor %}
+
+            <!-- ERGONÓMICO -->
+            {% for label in listaergonomicos %}
+                <tr style="height:10px">
+                    {% if forloop.first %}
+                        <td rowspan="6" colspan="2" class="rotated bold" style="width:4%">ERGONÓMICO</td>
+                    {% endif %}
+                    <td>{{ label }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            {% endfor %}
+
+            <!-- PSICOSOCIAL -->
+            {% for label in listapsicosociales %}
+                <tr style="height:10px">
+                    {% if forloop.first %}
+                        <td rowspan="14" colspan="2" class="rotated bold" style="width:4%">PSICOSOCIAL</td>
+                    {% endif %}
+                    <td>{{ label }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            {% endfor %}
+
+            <!-- MEDIDAS PREVENTIVAS -->
+            <tr style="height:14px">
+                <td colspan="2" class="col-hdr bold">MEDIDAS PREVENTIVAS</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+
+        <div class="footer">
+            <span>SNS-MSP/HCU-form.123/2025</span>
+            <span>Evaluación Médica Ocupacional</span>
+        </div>
+    </div>
+
+
+    <!-- PÁGINA H-P -->
+    <div class="page">
+
+        <!-- H -->
+        <div class="section">
+            <div class="sec-title">H. ACTIVIDAD LABORAL/ INCIDENTES/ACCIDENTES / ENFERMEDADES OCUPACIONALES</div>
+            <div class="sub-title">ANTECEDENTES DE EMPLEOS ANTERIORES Y/O TRABAJO ACTUAL</div>
+            <table style="font-size:6px">
+                <tr>
+                    <td style="width:12%" class="col-hdr" rowspan="2">CENTRO DE TRABAJO</td>
+                    <td style="width:18%" class="col-hdr" rowspan="2">ACTIVIDADES QUE DESEMPEÑABA</td>
+                    <td class="col-hdr center" colspan="3">TRABAJO</td>
+                    <td class="col-hdr center" colspan="3">De los Accidentes de Trabajo y las Enfermedades
+                        Profesionales
+                    </td>
+                    <td class="col-hdr center" colspan="5">CALIFICADO POR INSTITUTO ECUATORIANO DE SEGURIDAD SOCIAL</td>
+                </tr>
+                <tr>
+                    <td class="col-hdr center" style="width:5%">ANTERIOR</td>
+                    <td class="col-hdr center" style="width:5%">ACTUAL</td>
+                    <td class="col-hdr center" style="width:7%">TIEMPO DE TRABAJO</td>
+                    <td class="col-hdr center" style="width:6%">INCIDENTE</td>
+                    <td class="col-hdr center" style="width:6%">ACCIDENTE</td>
+                    <td class="col-hdr center" style="width:9%">ENFERMEDAD PROFESIONAL</td>
+                    <td class="col-hdr center" style="width:4%">SI</td>
+                    <td class="col-hdr center" style="width:4%">NO</td>
+                    <td class="col-hdr center" style="width:9%">FECHA aaaa/mm/dd</td>
+                    <td class="col-hdr">ESPECIFICAR</td>
+                    <td class="col-hdr" style="width:10%">Observaciones</td>
+                </tr>
+                {% for i in p.incidentes %}
+                    <tr class="data-row">
+                        <td>{{ i.empresa|default_if_none:"" }}</td>
+                        <td>{{ i.actividad_desempenada|default_if_none:"" }}</td>
+                        <td></td>
+                        <td></td>
+                        <td class="center">{{ i.tiempo|default_if_none:"" }}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="center"><span class="cb">{% if i.calificado_por_instituto %}X{% endif %}</span></td>
+                        <td class="center"><span class="cb">{% if i.calificado_por_instituto == False %}
+                            X{% endif %}</span></td>
+                        <td class="center">{{ i.fecha|date:"Y/m/d" }}</td>
+                        <td>{{ i.descripcion|default_if_none:"" }}</td>
+                        <td>{{ i.observaciones|default_if_none:"" }}</td>
+                    </tr>
+                {% empty %}
+                    {% for n in listanumbers %}
+                        <tr class="data-row">
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- I -->
+        <div class="section">
+            <div class="sec-title">I. ACTIVIDADES EXTRA LABORALES</div>
+            <table style="font-size:6.5px">
+                <tr>
+                    <td style="width:70%" class="col-hdr">TIPO DE ACTIVIDAD</td>
+                    <td style="width:30%" class="col-hdr">(FECHA) aaaa/mm/dd</td>
+                </tr>
+                {% for x in p.actividades %}
+                    <tr class="data-row">
+                        <td>{{ x.tipo_actividad|default_if_none:"" }}</td>
+                        <td>{{ x.frecuencia|default_if_none:"" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr class="data-row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="data-row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- J -->
+        <div class="section">
+            <div class="sec-title">J. RESULTADOS DE EXÁMENES GENERALES Y ESPECÍFICOS DE ACUERDO AL RIESGO Y PUESTO DE
+                TRABAJO (IMAGEN, LABORATORIO Y OTROS)
+            </div>
+            <table style="font-size:6.5px">
+                <tr>
+                    <td style="width:22%" class="col-hdr">NOMBRE DEL EXAMEN</td>
+                    <td style="width:14%" class="col-hdr">FECHAaaaa/mm/dd</td>
+                    <td style="width:64%" class="col-hdr">RESULTADOS</td>
+                </tr>
+                {% for e in p.examenes %}
+                    <tr class="data-row">
+                        <td>{{ e.nombre_examen|default_if_none:"" }}</td>
+                        <td class="center">{{ e.fecha|date:"Y/m/d" }}</td>
+                        <td>{{ e.resultados|default_if_none:"" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr class="data-row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="data-row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="data-row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="data-row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="3" class="field-lbl" style="border-top:none; padding-top:2px">OBSERVACIONES:</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- K -->
+        <div class="section">
+            <div class="sec-title">K. DIAGNÓSTICO &nbsp; <span style="font-weight:normal; font-size:7px">PRE: PRESUNTIVO &nbsp; DEF: DEFINITIVO</span>
+            </div>
+            <table style="font-size:6.5px">
+                <tr>
+                    <td style="width:3%" class="col-hdr center"></td>
+                    <td style="width:13%" class="col-hdr center">CIE-10</td>
+                    <td style="width:74%" class="col-hdr">Descripción</td>
+                    <td style="width:5%" class="col-hdr center">PRE</td>
+                    <td style="width:5%" class="col-hdr center">DEF</td>
+                </tr>
+                {% for d in p.diagnosticos %}
+                    <tr class="data-row">
+                        <td class="center">{{ forloop.counter }}</td>
+                        <td>{{ d.cie10|default_if_none:"" }}</td>
+                        <td>{{ d.descripcion|default_if_none:"" }}</td>
+                        <td class="center"><span class="cb">{% if d.presuntivo %}X{% endif %}</span></td>
+                        <td class="center"><span class="cb">{% if d.definitivo %}X{% endif %}</span></td>
+                    </tr>
+                {% empty %}
+                    {% for n in listanumberssix %}
+                        <tr class="data-row">
+                            <td class="center">{{ n }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- L -->
+        <div class="section">
+            <div class="sec-title">L. APTITUD MEDICA PARA EL TRABAJO</div>
+            <table>
+                <tr>
+                    <td style="width:25%" class="col-hdr center">APTO</td>
+                    <td style="width:25%" class="col-hdr center">APTO EN OBSERVACIÓN</td>
+                    <td style="width:25%" class="col-hdr center">APTO CON LIMITACIONES</td>
+                    <td style="width:25%" class="col-hdr center">NO APTO</td>
+                </tr>
+                <tr class="data-row center">
+                    <td><span class="cb">{% if ev.aptitud_medica == "APTO" %}X{% endif %}</span></td>
+                    <td><span class="cb">{% if ev.aptitud_medica == "APTO_OBSERVACION" %}X{% endif %}</span></td>
+                    <td><span class="cb">{% if ev.aptitud_medica == "APTO_LIMITACIONES" %}X{% endif %}</span></td>
+                    <td><span class="cb">{% if ev.aptitud_medica == "NO_APTO" %}X{% endif %}</span></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="field-lbl">OBSERVACIONES:</td>
+                </tr>
+                <tr class="data-row2">
+                    <td colspan="4">{{ ev.aptitud_detalle_observaciones|default_if_none:"" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- M -->
+        <div class="section">
+            <div class="sec-title">M. RECOMENDACIONES Y/O TRATAMIENTO</div>
+            <table>
+                <tr>
+                    <td class="field-lbl">Descripción</td>
+                </tr>
+                <tr class="data-row3">
+                    <td>{{ ev.recomendaciones_tratamiento|default_if_none:"" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- N -->
+        <div class="section">
+            <div class="sec-title">N.RETIRO (evaluación)</div>
+            <table style="font-size:7px">
+                <tr>
+                    <td style="width:40%">SE REALIZA LA EVALUACIÓN</td>
+                    <td style="width:10%" class="center"><span class="cb">{% if ev.retiro_se_realiza_evaluacion %}
+                        X{% endif %}</span></td>
+                    <td style="width:5%" class="col-hdr center">SI</td>
+                    <td style="width:35%"></td>
+                    <td style="width:5%" class="col-hdr center">NO</td>
+                    <td style="width:5%" class="center"><span
+                            class="cb">{% if ev.retiro_se_realiza_evaluacion == False %}X{% endif %}</span></td>
+                </tr>
+                <tr>
+                    <td>LA CONDICIÓN DE SALUD ESTA RELACIONADA CON EL TRABAJO</td>
+                    <td class="center"><span class="cb">{% if ev.retiro_condicion_relacionada_trabajo %}
+                        X{% endif %}</span></td>
+                    <td class="col-hdr center">SI</td>
+                    <td></td>
+                    <td class="col-hdr center">NO</td>
+                    <td class="center"><span class="cb">{% if ev.retiro_condicion_relacionada_trabajo == False %}
+                        X{% endif %}</span></td>
+                </tr>
+                <tr>
+                    <td colspan="6" class="field-lbl">Observación:</td>
+                </tr>
+                <tr class="data-row2">
+                    <td colspan="6">{{ ev.retiro_observacion|default_if_none:"" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- O y P -->
+        <div class="section">
+            <table>
+                <tr style="vertical-align:top">
+                    <td style="width:65%; border:none; padding:0; padding-right:2px">
+                        <div class="sec-title">O. DATOS DEL PROFESIONAL</div>
+                        <table style="font-size:7px">
+                            <tr>
+                                <td class="col-hdr center">NOMBRES Y APELLIDOS DEL PROFESIONAL</td>
+                                <td class="col-hdr center" style="width:25%">CÓDIGO MÉDICO</td>
+                                <td class="col-hdr center" style="width:20%">FIRMA Y SELLO</td>
+                            </tr>
+                            <tr class="data-row2">
+                                <td>{{ ev.profesional.persona.nombres_completos|default_if_none:"" }}</td>
+                                <td class="center">{{ ev.profesional.codigo_medico|default_if_none:"" }}</td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="width:35%; border:none; padding:0; padding-left:2px">
+                        <div class="sec-title">P. FIRMA O HUELLA DEL TRABAJADOR</div>
+                        <table>
+                            <tr style="height:28px">
+                                <td></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="footer">
+            <span>SNS-MSP/HCU-form.123/2025 Evaluación Médica Ocupacional</span>
+            <span>Evaluación Médica Ocupacional</span>
+        </div>
+    </div>
+
+{% endfor %}
+
+</body>
+</html>

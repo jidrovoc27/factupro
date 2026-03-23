@@ -1,0 +1,636 @@
+<form id="formModal" method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="{{ action }}">
+    {% if id %}<input type="hidden" name="id" value="{{ id }}">{% endif %}
+
+    <!-- JSON hidden -->
+    <input type="hidden" name="antecedentes_json" id="antecedentes_json">
+    <input type="hidden" name="incidentes_json" id="incidentes_json">
+    <input type="hidden" name="actividades_json" id="actividades_json">
+    <input type="hidden" name="examenes_json" id="examenes_json">
+    <input type="hidden" name="diagnosticos_json" id="diagnosticos_json">
+    <input type="hidden" name="certificado_json" id="certificado_json">
+
+    <input type="hidden" name="antecedentes_deleted" id="antecedentes_deleted">
+    <input type="hidden" name="incidentes_deleted" id="incidentes_deleted">
+    <input type="hidden" name="actividades_deleted" id="actividades_deleted">
+    <input type="hidden" name="examenes_deleted" id="examenes_deleted">
+    <input type="hidden" name="diagnosticos_deleted" id="diagnosticos_deleted">
+
+
+    <div class="modal-header">
+        <h5 class="modal-title">{{ title_modal|default:"Evaluación médica ocupacional (FEMO)" }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+
+    <div class="modal-body">
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <ul class="nav nav-tabs" id="femoTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-general" type="button"
+                        role="tab">
+                    1) Datos generales
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-antecedentes" type="button"
+                        role="tab">
+                    2) Antecedentes laborales (N)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-incidentes" type="button" role="tab">
+                    3) Incidentes / accidentes (N)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-actividades" type="button"
+                        role="tab">
+                    4) Actividades extralaborales (N)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-examenes" type="button" role="tab">
+                    5) Exámenes (N)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-diagnosticos" type="button"
+                        role="tab">
+                    6) Diagnósticos (N)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-certificado" type="button"
+                        role="tab">
+                    7) Aptitud / Certificado
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content pt-3">
+
+            <!-- TAB 1: GENERAL (usa tu form + partial bonito) -->
+            <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
+                <div class="row g-3">
+                    {% for field in form %}
+                        {% include "core/_field_bs5.html" with field=field col="col-12 col-lg-6" %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- TAB 2: ANTECEDENTES LABORALES -->
+            <div class="tab-pane fade" id="tab-antecedentes" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <h6 class="mb-0">Antecedentes laborales</h6>
+                        <small class="text-muted">Agrega los registros necesarios</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowAntecedente()">
+                        <i class="fa fa-plus"></i> Agregar
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle" id="tblAntecedentes">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Empresa</th>
+                            <th>Puesto</th>
+                            <th>Actividad</th>
+                            <th>Tiempo</th>
+                            <th>Riesgos</th>
+                            <th>EPP</th>
+                            <th>Observaciones</th>
+                            <th style="width:60px;"></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: INCIDENTES -->
+            <div class="tab-pane fade" id="tab-incidentes" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <h6 class="mb-0">Incidentes / accidentes / enfermedades ocupacionales</h6>
+                        <small class="text-muted">Agrega los registros necesarios</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowIncidente()">
+                        <i class="fa fa-plus"></i> Agregar
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle" id="tblIncidentes">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Puesto</th>
+                            <th>Actividad</th>
+                            <th>Fecha</th>
+                            <th>Descripción</th>
+                            <th>Calificado</th>
+                            <th>Reubicación</th>
+                            <th>Obs.</th>
+                            <th style="width:60px;"></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 4: ACTIVIDADES EXTRA -->
+            <div class="tab-pane fade" id="tab-actividades" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <h6 class="mb-0">Actividades extralaborales</h6>
+                        <small class="text-muted">Agrega los registros necesarios</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowActividad()">
+                        <i class="fa fa-plus"></i> Agregar
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle" id="tblActividades">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Tipo actividad</th>
+                            <th>Frecuencia</th>
+                            <th>Observaciones</th>
+                            <th style="width:60px;"></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 5: EXÁMENES -->
+            <div class="tab-pane fade" id="tab-examenes" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <h6 class="mb-0">Exámenes generales / específicos</h6>
+                        <small class="text-muted">Agrega los registros necesarios</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowExamen()">
+                        <i class="fa fa-plus"></i> Agregar
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle" id="tblExamenes">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Nombre examen</th>
+                            <th>Fecha</th>
+                            <th>Resultados</th>
+                            <th>Observaciones</th>
+                            <th style="width:60px;"></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 6: DIAGNÓSTICOS -->
+            <div class="tab-pane fade" id="tab-diagnosticos" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <h6 class="mb-0">Diagnósticos</h6>
+                        <small class="text-muted">CIE10 + presuntivo/definitivo</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowDiagnostico()">
+                        <i class="fa fa-plus"></i> Agregar
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle" id="tblDiagnosticos">
+                        <thead class="table-light">
+                        <tr>
+                            <th>CIE10</th>
+                            <th>Descripción</th>
+                            <th>Presuntivo</th>
+                            <th>Definitivo</th>
+                            <th style="width:60px;"></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 7: CERTIFICADO -->
+            <div class="tab-pane fade" id="tab-certificado" role="tabpanel">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label"><b>Fecha emisión</b></label>
+                        <input type="date" class="form-control" id="c_fecha_emision">
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label"><b>Aptitud médica</b></label>
+                        <select class="form-select" id="c_aptitud">
+                            <option value="">---</option>
+                            <option value="APTO">Apto</option>
+                            <option value="APTO_OBSERVACION">Apto en observación</option>
+                            <option value="APTO_LIMITACIONES">Apto con limitaciones</option>
+                            <option value="NO_APTO">No apto</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-12">
+                        <label class="form-label"><b>Detalle / Observaciones</b></label>
+                        <textarea class="form-control" rows="2" id="c_detalle"></textarea>
+                    </div>
+
+                    <div class="col-12 col-md-12">
+                        <label class="form-label"><b>Recomendaciones</b></label>
+                        <textarea class="form-control" rows="2" id="c_recomendaciones"></textarea>
+                    </div>
+
+                    <div class="col-12 col-md-12">
+                        <label class="form-label"><b>Firma / huella trabajador</b></label>
+                        <textarea class="form-control" rows="2" id="c_firma_huella"></textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+            <i class="fa fa-times"></i> Cerrar
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fa fa-save"></i> Guardar
+        </button>
+    </div>
+</form>
+
+<!-- Precarga en EDIT (JSON desde backend) -->
+<script id="preloadData" type="application/json">
+{{ preload_json|default:"{}"|safe }}
+</script>
+<script type="text/javascript" src='/static/js/select2.js?v=1.0.0' ></script>
+    <link type='text/css' rel='stylesheet' href="/static/css/select2.css?v=1.0.0"/>
+<script>
+
+    /* ======== UTIL ======== */
+    function esc(s) {
+        return (s ?? "")
+            .toString()
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
+    function toBool(v) {
+        return v === true || v === "true" || v === 1 || v === "1";
+    }
+
+    function delRow(btn, tipo) {
+        const tr = btn.closest('tr');
+        const id = tr?.dataset?.id;
+
+        if (id) {
+            if (tipo === "antecedentes") deletedAntecedentes.push(parseInt(id));
+            if (tipo === "incidentes") deletedIncidentes.push(parseInt(id));
+            if (tipo === "actividades") deletedActividades.push(parseInt(id));
+            if (tipo === "examenes") deletedExamenes.push(parseInt(id));
+            if (tipo === "diagnosticos") deletedDiagnosticos.push(parseInt(id));
+        }
+        tr.remove();
+    }
+
+
+    /* ======== ANTECEDENTES ======== */
+    function addRowAntecedente(d = {}) {
+        const tbody = document.querySelector("#tblAntecedentes tbody");
+        const tr = document.createElement("tr");
+        tr.dataset.id = d.id || ""; // ✅ importante
+
+        tr.innerHTML = `
+    <td><input class="form-control form-control-sm a-empresa" value="${esc(d.empresa)}"></td>
+    <td><input class="form-control form-control-sm a-puesto" value="${esc(d.puesto)}"></td>
+    <td><textarea class="form-control form-control-sm a-actividad" rows="1">${esc(d.actividad)}</textarea></td>
+    <td><input class="form-control form-control-sm a-tiempo" value="${esc(d.tiempo)}"></td>
+    <td><textarea class="form-control form-control-sm a-riesgos" rows="1">${esc(d.riesgos)}</textarea></td>
+    <td><textarea class="form-control form-control-sm a-epp" rows="1">${esc(d.epp)}</textarea></td>
+    <td><textarea class="form-control form-control-sm a-observaciones" rows="1">${esc(d.observaciones)}</textarea></td>
+    <td class="text-center">
+      <button type="button" class="btn btn-sm btn-outline-danger"
+              onclick="delRow(this,'antecedentes')"><i class="fa fa-trash"></i></button>
+    </td>`;
+        tbody.appendChild(tr);
+    }
+
+
+    function collectAntecedentes() {
+        const rows = document.querySelectorAll("#tblAntecedentes tbody tr");
+        const data = [];
+        rows.forEach(tr => {
+            const obj = {
+                id: tr.dataset.id || null,
+                empresa: tr.querySelector(".a-empresa")?.value || "",
+                puesto: tr.querySelector(".a-puesto")?.value || "",
+                actividad: tr.querySelector(".a-actividad")?.value || "",
+                tiempo: tr.querySelector(".a-tiempo")?.value || "",
+                riesgos: tr.querySelector(".a-riesgos")?.value || "",
+                epp: tr.querySelector(".a-epp")?.value || "",
+                observaciones: tr.querySelector(".a-observaciones")?.value || "",
+            };
+            if (Object.values(obj).some(v => (v || "").toString().trim() !== "")) data.push(obj);
+        });
+        return data;
+    }
+
+
+    /* ======== INCIDENTES ======== */
+    function addRowIncidente(d = {}) {
+        const tbody = document.querySelector("#tblIncidentes tbody");
+        const tr = document.createElement("tr");
+        tr.dataset.id = d.id || "";
+
+        tr.innerHTML = `
+    <td><input class="form-control form-control-sm i-puesto" value="${esc(d.puesto_trabajo)}"></td>
+    <td><textarea class="form-control form-control-sm i-actividad" rows="1">${esc(d.actividad_desempenada)}</textarea></td>
+    <td><input type="date" class="form-control form-control-sm i-fecha" value="${esc(d.fecha)}"></td>
+    <td><textarea class="form-control form-control-sm i-descripcion" rows="1">${esc(d.descripcion)}</textarea></td>
+    <td class="text-center"><input type="checkbox" class="form-check-input i-calificado" ${toBool(d.calificado_por_instituto) ? "checked" : ""}></td>
+    <td class="text-center"><input type="checkbox" class="form-check-input i-reubicacion" ${toBool(d.reubicacion) ? "checked" : ""}></td>
+    <td><textarea class="form-control form-control-sm i-observaciones" rows="1">${esc(d.observaciones)}</textarea></td>
+    <td class="text-center">
+      <button type="button" class="btn btn-sm btn-outline-danger"
+              onclick="delRow(this,'incidentes')"><i class="fa fa-trash"></i></button>
+    </td>`;
+        tbody.appendChild(tr);
+    }
+
+
+    function collectIncidentes() {
+  const rows = document.querySelectorAll("#tblIncidentes tbody tr");
+  const data = [];
+
+  rows.forEach(tr => {
+    const obj = {
+      id: tr.dataset.id || null,  // ✅ CLAVE
+      puesto_trabajo: tr.querySelector(".i-puesto")?.value || "",
+      actividad_desempenada: tr.querySelector(".i-actividad")?.value || "",
+      fecha: tr.querySelector(".i-fecha")?.value || "",
+      descripcion: tr.querySelector(".i-descripcion")?.value || "",
+      calificado_por_instituto: tr.querySelector(".i-calificado")?.checked || false,
+      reubicacion: tr.querySelector(".i-reubicacion")?.checked || false,
+      observaciones: tr.querySelector(".i-observaciones")?.value || "",
+    };
+
+    if (Object.values(obj).some(v => (v === true) || ((v || "").toString().trim() !== ""))) {
+      data.push(obj);
+    }
+  });
+
+  return data;
+}
+
+
+    /* ======== ACTIVIDADES EXTRA ======== */
+    function addRowActividad(d = {}) {
+        const tbody = document.querySelector("#tblActividades tbody");
+        const tr = document.createElement("tr");
+        tr.dataset.id = d.id || "";
+
+        tr.innerHTML = `
+    <td><input class="form-control form-control-sm x-tipo" value="${esc(d.tipo_actividad)}"></td>
+    <td><input class="form-control form-control-sm x-frecuencia" value="${esc(d.frecuencia)}"></td>
+    <td><textarea class="form-control form-control-sm x-observaciones" rows="1">${esc(d.observaciones)}</textarea></td>
+    <td class="text-center">
+      <button type="button" class="btn btn-sm btn-outline-danger"
+              onclick="delRow(this,'actividades')"><i class="fa fa-trash"></i></button>
+    </td>`;
+        tbody.appendChild(tr);
+    }
+
+
+    function collectActividades() {
+  const rows = document.querySelectorAll("#tblActividades tbody tr");
+  const data = [];
+
+  rows.forEach(tr => {
+    const obj = {
+      id: tr.dataset.id || null,  // ✅
+      tipo_actividad: tr.querySelector(".x-tipo")?.value || "",
+      frecuencia: tr.querySelector(".x-frecuencia")?.value || "",
+      observaciones: tr.querySelector(".x-observaciones")?.value || "",
+    };
+
+    if (Object.values(obj).some(v => (v || "").toString().trim() !== "")) {
+      data.push(obj);
+    }
+  });
+
+  return data;
+}
+
+
+    /* ======== EXAMENES ======== */
+    function addRowExamen(d = {}) {
+        const tbody = document.querySelector("#tblExamenes tbody");
+        const tr = document.createElement("tr");
+        tr.dataset.id = d.id || "";
+
+        tr.innerHTML = `
+    <td><input class="form-control form-control-sm e-nombre" value="${esc(d.nombre_examen)}"></td>
+    <td><input type="date" class="form-control form-control-sm e-fecha" value="${esc(d.fecha)}"></td>
+    <td><textarea class="form-control form-control-sm e-resultados" rows="1">${esc(d.resultados)}</textarea></td>
+    <td><textarea class="form-control form-control-sm e-observaciones" rows="1">${esc(d.observaciones)}</textarea></td>
+    <td class="text-center">
+      <button type="button" class="btn btn-sm btn-outline-danger"
+              onclick="delRow(this,'examenes')"><i class="fa fa-trash"></i></button>
+    </td>`;
+        tbody.appendChild(tr);
+    }
+
+
+    function collectExamenes() {
+  const rows = document.querySelectorAll("#tblExamenes tbody tr");
+  const data = [];
+
+  rows.forEach(tr => {
+    const obj = {
+      id: tr.dataset.id || null,  // ✅
+      nombre_examen: tr.querySelector(".e-nombre")?.value || "",
+      fecha: tr.querySelector(".e-fecha")?.value || "",
+      resultados: tr.querySelector(".e-resultados")?.value || "",
+      observaciones: tr.querySelector(".e-observaciones")?.value || "",
+    };
+
+    if (Object.values(obj).some(v => (v || "").toString().trim() !== "")) {
+      data.push(obj);
+    }
+  });
+
+  return data;
+}
+
+
+    /* ======== DIAGNOSTICOS ======== */
+    function addRowDiagnostico(d = {}) {
+        const tbody = document.querySelector("#tblDiagnosticos tbody");
+        const tr = document.createElement("tr");
+        tr.dataset.id = d.id || "";
+
+        tr.innerHTML = `
+    <td><input class="form-control form-control-sm d-cie10" value="${esc(d.cie10)}"></td>
+    <td><textarea class="form-control form-control-sm d-desc" rows="1">${esc(d.descripcion)}</textarea></td>
+    <td class="text-center"><input type="checkbox" class="form-check-input d-pres" ${toBool(d.presuntivo) ? "checked" : ""}></td>
+    <td class="text-center"><input type="checkbox" class="form-check-input d-def" ${toBool(d.definitivo) ? "checked" : ""}></td>
+    <td class="text-center">
+      <button type="button" class="btn btn-sm btn-outline-danger"
+              onclick="delRow(this,'diagnosticos')"><i class="fa fa-trash"></i></button>
+    </td>`;
+        tbody.appendChild(tr);
+    }
+
+
+    function collectDiagnosticos() {
+  const rows = document.querySelectorAll("#tblDiagnosticos tbody tr");
+  const data = [];
+
+  rows.forEach(tr => {
+    const obj = {
+      id: tr.dataset.id || null,  // ✅
+      cie10: tr.querySelector(".d-cie10")?.value || "",
+      descripcion: tr.querySelector(".d-desc")?.value || "",
+      presuntivo: tr.querySelector(".d-pres")?.checked || false,
+      definitivo: tr.querySelector(".d-def")?.checked || false,
+    };
+
+    if (Object.values(obj).some(v => (v === true) || ((v || "").toString().trim() !== ""))) {
+      data.push(obj);
+    }
+  });
+
+  return data;
+}
+
+
+    /* ======== CERTIFICADO (1) ======== */
+    function collectCertificado() {
+        return {
+            fecha_emision: document.getElementById("c_fecha_emision")?.value || "",
+            aptitud_medica: document.getElementById("c_aptitud")?.value || "",
+            detalle_observaciones: document.getElementById("c_detalle")?.value || "",
+            recomendaciones: document.getElementById("c_recomendaciones")?.value || "",
+            firma_huella_trabajador: document.getElementById("c_firma_huella")?.value || "",
+        };
+    }
+
+    /* ======== PRELOAD EDIT ======== */
+    function preload() {
+        let payload = {};
+        try {
+            const raw = document.getElementById("preloadData")?.textContent || "{}";
+            payload = JSON.parse(raw);
+        } catch (e) {
+            payload = {};
+        }
+
+        (payload.antecedentes || []).forEach(addRowAntecedente);
+        (payload.incidentes || []).forEach(addRowIncidente);
+        (payload.actividades || []).forEach(addRowActividad);
+        (payload.examenes || []).forEach(addRowExamen);
+        (payload.diagnosticos || []).forEach(addRowDiagnostico);
+
+        const c = payload.certificado || {};
+        if (document.getElementById("c_fecha_emision")) document.getElementById("c_fecha_emision").value = c.fecha_emision || "";
+        if (document.getElementById("c_aptitud")) document.getElementById("c_aptitud").value = c.aptitud_medica || "";
+        if (document.getElementById("c_detalle")) document.getElementById("c_detalle").value = c.detalle_observaciones || "";
+        if (document.getElementById("c_recomendaciones")) document.getElementById("c_recomendaciones").value = c.recomendaciones || "";
+        if (document.getElementById("c_firma_huella")) document.getElementById("c_firma_huella").value = c.firma_huella_trabajador || "";
+
+        // si no hay nada, pon una fila por defecto para no estar vacío
+        if ((payload.antecedentes || []).length === 0) addRowAntecedente();
+        if ((payload.diagnosticos || []).length === 0) addRowDiagnostico();
+    }
+
+    /* ======== BEFORE SUBMIT: SERIALIZA ======== */
+    document.addEventListener("submit", function (e) {
+        const f = e.target;
+        if (f && f.id === "formModal") {
+            $("#antecedentes_deleted").val(JSON.stringify(deletedAntecedentes));
+            $("#incidentes_deleted").val(JSON.stringify(deletedIncidentes));
+            $("#actividades_deleted").val(JSON.stringify(deletedActividades));
+            $("#examenes_deleted").val(JSON.stringify(deletedExamenes));
+            $("#diagnosticos_deleted").val(JSON.stringify(deletedDiagnosticos));
+
+            document.getElementById("antecedentes_json").value = JSON.stringify(collectAntecedentes());
+            document.getElementById("incidentes_json").value = JSON.stringify(collectIncidentes());
+            document.getElementById("actividades_json").value = JSON.stringify(collectActividades());
+            document.getElementById("examenes_json").value = JSON.stringify(collectExamenes());
+            document.getElementById("diagnosticos_json").value = JSON.stringify(collectDiagnosticos());
+            document.getElementById("certificado_json").value = JSON.stringify(collectCertificado());
+        }
+    }, true);
+
+    preload();
+</script>
+<script>
+    $(function(){
+        ItemsDisplay = function (item) {
+                if (item.name) {
+                    return $('<span>' + item.name + '</span>');
+                } else {
+                    return '---------';
+                }
+            };
+        $('#id_persona_select2').attr('tabindex', '0');
+        $("#id_persona_select2").select2({
+                placeholder: "---------",
+                allowClear: true,
+                dropdownParent: $('#id_persona_select2').parent(), // impo7
+                ajax: {
+                    url: function (params) {
+                        return "/consultargeneral?action=data&model=Persona&p=1&s=10&q=" + params.term;
+                    },
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        return {
+                            results: data.results,
+                            pagination: {
+                                more: (params.page * 30) < data.total_count
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                escapeMarkup: function (markup) {
+                    return markup;
+                }, // let our custom formatter work
+                minimumInputLength: 1,
+                templateResult: ItemsDisplay, // omitted for brevity, see the source of this page
+                templateSelection: ItemsDisplay // omitted for brevity, see the source of this page
+            }).on("select2:select", function (evt) {
+                $("#id_persona").attr({"value": (evt.params.data.id)});
+            });
+    })
+</script>

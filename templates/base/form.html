@@ -1,0 +1,93 @@
+<form id="formModal" method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="{{ action }}">
+    {% if id %}<input type="hidden" name="id" value="{{ id }}">{% endif %}
+    {% if extra_hidden %}{{ extra_hidden|safe }}{% endif %}
+
+    <div class="modal-header">
+        <h5 class="modal-title">{{ title_modal|default:"Formulario" }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-3">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="row g-3">
+            {% for field in form %}
+                {% with w=field.field.widget.attrs.formwidth|default:'100%' %}
+                    {# Mapeo simple de tus widths a columnas Bootstrap #}
+                    {% if w == '25%' %}
+                        {% with col='col-12 col-md-3' %}
+                            {% include "core/_field_bs5.html" %}
+                        {% endwith %}
+                    {% elif w == '30%' %}
+                        {% with col='col-12 col-md-4' %}
+                            {% include "core/_field_bs5.html" %}
+                        {% endwith %}
+                    {% elif w == '33%' %}
+                        {% with col='col-12 col-md-4' %}
+                            {% include "core/_field_bs5.html" %}
+                        {% endwith %}
+                    {% elif w == '50%' %}
+                        {% with col='col-12 col-md-6' %}
+                            {% include "core/_field_bs5.html" %}
+                        {% endwith %}
+                    {% elif w == '70%' %}
+                        {% with col='col-12 col-md-8' %}
+                            {% include "core/_field_bs5.html" %}
+                        {% endwith %}
+                    {% else %}
+                        {% with col='col-12' %}
+                            {% include "core/_field_bs5.html" %}
+                        {% endwith %}
+                    {% endif %}
+                {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+            <i class="fa fa-times"></i> Cerrar
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fa fa-save"></i> Guardar
+        </button>
+    </div>
+</form>
+
+<script>
+(function () {
+  // Aplica clases Bootstrap a todos los campos del modal automáticamente
+  const form = document.getElementById('formModal');
+  if (!form) return;
+
+  form.querySelectorAll('input, select, textarea').forEach(el => {
+    // Evita tocar hidden/csrf
+    if (el.type === 'hidden' || el.name === 'csrfmiddlewaretoken') return;
+
+    // Checkbox / radio
+    if (el.type === 'checkbox' || el.type === 'radio') {
+      el.classList.add('form-check-input');
+      return;
+    }
+
+    // Select / input / textarea
+    el.classList.add('form-control');
+
+    // Si quieres que los select se vean como bootstrap (sin select2)
+    if (el.tagName.toLowerCase() === 'select') {
+      el.classList.add('form-select');
+      el.classList.remove('form-control');
+    }
+  });
+
+  // Si tu sistema usa select2search="true", aquí podrías inicializar select2
+  // Ejemplo:
+  // $(form).find('[select2search="true"]').select2({ dropdownParent: $('#modalForm') });
+})();
+</script>
