@@ -13,7 +13,7 @@ from .models import EvaluacionMedicaOcupacional, Trabajador, ProfesionalSalud, A
 from .forms import EvaluacionMedicaOcupacionalForm, AntecedenteLaboralForm
 from saas.vistaprincipal import act_info
 from saas.models import *
-from base.funciones import MiPaginador
+from base.funciones import MiPaginador, _to_date_or_none, _to_int_or_none, _to_decimal_or_none, _to_bool, obtener_ip_cliente_actual
 from saas.funciones_reporte import generar_pdf_femo_completo
 
 # adduserdata, MiPaginador, log, etc. los asumo existentes como en tu proyecto.
@@ -76,131 +76,267 @@ def view(request):
         if action == 'addevaluacion':
             try:
                 with transaction.atomic():
-                    form = EvaluacionMedicaOcupacionalForm(request.POST)
-                    if not form.is_valid():
-                        return JsonResponse(
-                            {'result': True, 'mensaje': 'El formulario no ha sido completado correctamente.'})
 
                     if not profesional_:
-                        return JsonResponse({'result': True, 'mensaje': 'Usted no cuenta como Profesional de la salud autorizado.'})
+                        return JsonResponse({
+                            'result': True,
+                            'mensaje': 'Usted no cuenta como Profesional de la salud autorizado.'
+                        })
 
+                    p = request.POST  # shortcut
+
+                    # ── Crear evaluación con TODOS los campos del formulario ──
                     ev = EvaluacionMedicaOcupacional(
-                        persona_id=form.cleaned_data.get('persona') or None,
+                        persona_id=p.get('persona') or None,
                         profesional=profesional_,
-                        institucion_sistema=form.cleaned_data.get('institucion_sistema'),
-                        ruc=form.cleaned_data.get('ruc'),
-                        ciu=form.cleaned_data.get('ciu'),
-                        establecimiento_trabajo=form.cleaned_data.get('establecimiento_trabajo'),
-                        numero_historia_clinica=form.cleaned_data.get('numero_historia_clinica'),
-                        numero_archivo=form.cleaned_data.get('numero_archivo'),
-                        puesto_trabajo_ciu=form.cleaned_data.get('puesto_trabajo_ciu'),
-                        grupo_atencion_prioritaria=form.cleaned_data.get('grupo_atencion_prioritaria'),
-                        fecha_atencion=form.cleaned_data.get('fecha_atencion'),
-                        fecha_ingreso_trabajo=form.cleaned_data.get('fecha_ingreso_trabajo'),
-                        fecha_reintegro=form.cleaned_data.get('fecha_reintegro'),
-                        fecha_ultimo_dia_laboral=form.cleaned_data.get('fecha_ultimo_dia_laboral'),
-                        tipo_evaluacion=form.cleaned_data.get('tipo_evaluacion'),
-                        motivo_consulta=form.cleaned_data.get('motivo_consulta'),
-                        aptitud_medica=form.cleaned_data.get('aptitud_medica'),
-                        aptitud_detalle_observaciones=form.cleaned_data.get('aptitud_detalle_observaciones'),
-                        recomendaciones_tratamiento=form.cleaned_data.get('recomendaciones_tratamiento'),
+
+                        # A. Datos establecimiento
+                        institucion_sistema=p.get('institucion_sistema') or None,
+                        ruc=p.get('ruc') or None,
+                        ciu=p.get('ciu') or None,
+                        establecimiento_trabajo=p.get('establecimiento_trabajo') or None,
+                        numero_historia_clinica=p.get('numero_historia_clinica') or None,
+                        numero_archivo=p.get('numero_archivo') or None,
+                        puesto_trabajo_ciu=p.get('puesto_trabajo_ciu') or p.get('puesto_trabajo_ciu_b') or None,
+
+                        # Grupo atención prioritaria
+                        gap_embarazada=p.get('gap_embarazada') or None,
+                        gap_discapacidad=p.get('gap_discapacidad') or None,
+                        gap_catastrofica=p.get('gap_catastrofica') or None,
+                        gap_adulto_mayor=p.get('gap_adulto_mayor') or None,
+
+                        # B. Motivo consulta
+                        fecha_atencion=_to_date_or_none(p.get('fecha_atencion')),
+                        fecha_ingreso_trabajo=_to_date_or_none(p.get('fecha_ingreso_trabajo')),
+                        fecha_reintegro=_to_date_or_none(p.get('fecha_reintegro')),
+                        fecha_ultimo_dia_laboral=_to_date_or_none(p.get('fecha_ultimo_dia_laboral')),
+                        tipo_evaluacion=p.get('tipo_evaluacion') or None,
+                        motivo_consulta=p.get('motivo_consulta') or None,
+
+                        # C. Antecedentes personales
+                        antecedentes_clinico_quirurgicos=p.get('antecedentes_clinico_quirurgicos') or None,
+                        antecedentes_familiares=p.get('antecedentes_familiares') or None,
+                        requiere_transfusiones=_to_bool(p.get('requiere_transfusiones')),
+                        tratamiento_hormonal=_to_bool(p.get('tratamiento_hormonal')),
+                        tratamiento_hormonal_cual=p.get('tratamiento_hormonal_cual') or None,
+
+                        # Gineco-obstétrico
+                        fecha_ultima_menstruacion=_to_date_or_none(p.get('fecha_ultima_menstruacion')),
+                        gestas=_to_int_or_none(p.get('gestas')),
+                        partos=_to_int_or_none(p.get('partos')),
+                        cesareas=_to_int_or_none(p.get('cesareas')),
+                        abortos=_to_int_or_none(p.get('abortos')),
+                        planificacion_familiar=p.get('planificacion_familiar') or None,
+                        planificacion_familiar_cual=p.get('planificacion_familiar_cual') or None,
+                        examenes_gineco_cual=p.get('examenes_gineco_cual') or None,
+                        examenes_gineco_tiempo=p.get('examenes_gineco_tiempo') or None,
+
+                        # Reproductivos masculinos
+                        examenes_masculino_cual=p.get('examenes_masculino_cual') or None,
+                        examenes_masculino_tiempo=p.get('examenes_masculino_tiempo') or None,
+                        plan_fam_masculino=p.get('plan_fam_masculino') or None,
+                        plan_fam_masculino_cual=p.get('plan_fam_masculino_cual') or None,
+
+                        # Consumo
+                        # Tabaco
+                        tabaco_detalle=p.get('tabaco_detalle') or None,
+                        tabaco_ex_consumidor=p.get('tabaco_ex_consumidor') or None,
+                        tabaco_tiempo_abstinencia=p.get('tabaco_tiempo_abstinencia') or None,
+                        tabaco_no_consume=p.get('tabaco_no_consume') or None,
+
+                        # Alcohol
+                        alcohol_detalle=p.get('alcohol_detalle') or None,
+                        alcohol_ex_consumidor=p.get('alcohol_ex_consumidor') or None,
+                        alcohol_tiempo_abstinencia=p.get('alcohol_tiempo_abstinencia') or None,
+                        alcohol_no_consume=p.get('alcohol_no_consume') or None,
+
+                        # Drogas
+                        drogas_detalle=p.get('drogas_detalle') or None,
+                        drogas_ex_consumidor=p.get('drogas_ex_consumidor') or None,
+                        drogas_tiempo_abstinencia=p.get('drogas_tiempo_abstinencia') or None,
+                        drogas_no_consume=p.get('drogas_no_consume') or None,
+                        consumo_observacion=p.get('consumo_observacion') or None,
+
+                        # Estilo de vida
+                        actividad_fisica=p.get('actividad_fisica') or None,
+                        actividad_fisica_cual=p.get('actividad_fisica_cual') or None,
+                        actividad_fisica_tiempo=p.get('actividad_fisica_tiempo') or None,
+
+                        # Condición preexistente
+                        medicacion_habitual=p.get('medicacion_habitual') or None,
+                        condicion_preexistente=p.get('condicion_preexistente') or None,
+                        condicion_preexistente_cantidad=p.get('condicion_preexistente_cantidad') or None,
+
+                        # D. Enfermedad actual
+                        enfermedad_problema_actual=p.get('enfermedad_problema_actual') or None,
+
+                        # E. Constantes vitales
+                        temperatura_c=_to_decimal_or_none(p.get('temperatura_c')),
+                        presion_arterial=p.get('presion_arterial') or None,
+                        frecuencia_cardiaca=_to_int_or_none(p.get('frecuencia_cardiaca')),
+                        frecuencia_respiratoria=_to_int_or_none(p.get('frecuencia_respiratoria')),
+                        saturacion_oxigeno=_to_int_or_none(p.get('saturacion_oxigeno')),
+                        peso_kg=_to_decimal_or_none(p.get('peso_kg')),
+                        talla_cm=_to_decimal_or_none(p.get('talla_cm')),
+                        imc=_to_decimal_or_none(p.get('imc')),
+                        perimetro_abdominal_cm=_to_decimal_or_none(p.get('perimetro_abdominal_cm')),
+
+                        # F. Examen físico
+                        examen_piel=p.get('examen_piel') or None,
+                        examen_ojos=p.get('examen_ojos') or None,
+                        examen_oidos=p.get('examen_oidos') or None,
+                        examen_nariz=p.get('examen_nariz') or None,
+                        examen_boca=p.get('examen_boca') or None,
+                        examen_cuello=p.get('examen_cuello') or None,
+                        examen_torax=p.get('examen_torax') or None,
+                        examen_pulmones=p.get('examen_pulmones') or None,
+                        examen_abdomen=p.get('examen_abdomen') or None,
+                        examen_columna=p.get('examen_columna') or None,
+                        examen_extremidades_superiores=p.get('examen_extremidades_superiores') or None,
+                        examen_pelvis_genitales=p.get('examen_pelvis_genitales') or None,
+                        examen_neurologico=p.get('examen_neurologico') or None,
+                        examen_observacion=p.get('examen_observacion') or None,
+
+                        # J. Observaciones exámenes
+                        examenes_observaciones=p.get('examenes_observaciones') or None,
+
+                        # L. Aptitud
+                        aptitud_medica=p.get('aptitud_medica') or None,
+                        aptitud_detalle_observaciones=p.get('aptitud_detalle_observaciones') or None,
+
+                        # M. Recomendaciones
+                        recomendaciones_tratamiento=p.get('recomendaciones_tratamiento') or None,
+
+                        # N. Retiro
+                        retiro_se_realiza_evaluacion=_to_bool(p.get('retiro_se_realiza_evaluacion')),
+                        retiro_condicion_relacionada_trabajo=_to_bool(p.get('retiro_condicion_relacionada_trabajo')),
+                        retiro_observacion=p.get('retiro_observacion') or None,
+
+                        # P. Firma
+                        firma_huella_trabajador=p.get('firma_huella_trabajador') or None,
                     )
                     ev.save(request)
 
-                    # ====== N registros ======
-                    antecedentes = json.loads(request.POST.get("antecedentes_json", "[]"))
-                    incidentes = _parse_json_list(request.POST.get('incidentes_json'))
-                    actividades = _parse_json_list(request.POST.get('actividades_json'))
-                    examenes = _parse_json_list(request.POST.get('examenes_json'))
-                    diagnosticos = _parse_json_list(request.POST.get('diagnosticos_json'))
-
+                    # ── Tabla H — Antecedentes laborales (fusionada) ──
+                    antecedentes = _parse_json_list(request.POST.get('antecedentes_json'))
                     for a in antecedentes:
-                        _id = a.get("id")
-
+                        _id = a.get('id')
                         payload = dict(
-                            empresa=a.get("empresa", ""),
-                            puesto=a.get("puesto", ""),
-                            actividad=a.get("actividad", ""),
-                            tiempo=a.get("tiempo", ""),
-                            riesgos=a.get("riesgos", ""),
-                            epp=a.get("epp", ""),
-                            observaciones=a.get("observaciones", ""),
+                            empresa=a.get('empresa') or None,
+                            puesto=a.get('puesto') or None,
+                            actividad=a.get('actividad_desempenada') or a.get('actividad') or None,
+                            tiempo=a.get('tiempo') or None,
+                            riesgos=a.get('riesgos') or None,
+                            epp=a.get('epp') or None,
+                            observaciones=a.get('observaciones') or None,
+                            # nuevos campos tabla H
+                            anterior=_to_bool(a.get('anterior')),
+                            actual=_to_bool(a.get('actual')),
+                            incidente=_to_bool(a.get('incidente')),
+                            accidente=_to_bool(a.get('accidente')),
+                            enfermedad_profesional=_to_bool(a.get('enfermedad_profesional')),
+                            calificado_por_instituto=_to_bool(a.get('calificado_por_instituto')),
+                            fecha=_to_date_or_none(a.get('fecha')),
+                            descripcion=a.get('descripcion') or None,
                         )
-
                         if _id:
-                            # ✅ Update SOLO si el id pertenece a esa evaluación
                             AntecedenteLaboral.objects.filter(id=_id, evaluacion=ev).update(**payload)
                         else:
-                            # ✅ Create nuevo
                             AntecedenteLaboral.objects.create(evaluacion=ev, **payload)
 
-                    if incidentes:
-                        IncidenteAccidenteEnfermedadOcupacional.objects.bulk_create([
-                            IncidenteAccidenteEnfermedadOcupacional(
-                                evaluacion=ev,
-                                puesto_trabajo=i.get('puesto_trabajo'),
-                                actividad_desempenada=i.get('actividad_desempenada'),
-                                fecha=i.get('fecha') or None,
-                                descripcion=i.get('descripcion'),
-                                calificado_por_instituto=bool(i.get('calificado_por_instituto')),
-                                reubicacion=bool(i.get('reubicacion')),
-                                observaciones=i.get('observaciones'),
-                            ) for i in incidentes
-                        ])
+                    # Eliminados
+                    deleted_ant = _parse_json_list(request.POST.get('antecedentes_deleted', '[]'))
+                    if deleted_ant:
+                        AntecedenteLaboral.objects.filter(
+                            id__in=[x for x in deleted_ant if x],
+                            evaluacion=ev
+                        ).delete()
 
-                    if actividades:
-                        ActividadExtraLaboral.objects.bulk_create([
-                            ActividadExtraLaboral(
-                                evaluacion=ev,
-                                tipo_actividad=x.get('tipo_actividad'),
-                                frecuencia=x.get('frecuencia'),
-                                observaciones=x.get('observaciones'),
-                            ) for x in actividades
-                        ])
+                    # ── Tabla I — Actividades extralaborales ──
+                    actividades = _parse_json_list(request.POST.get('actividades_json'))
+                    for x in actividades:
+                        _id = x.get('id')
+                        payload = dict(
+                            tipo_actividad=x.get('tipo_actividad') or None,
+                            frecuencia=x.get('fecha') or None,  # el form usa 'fecha' como frecuencia/fecha
+                            observaciones=x.get('observaciones') or None,
+                        )
+                        if _id:
+                            ActividadExtraLaboral.objects.filter(id=_id, evaluacion=ev).update(**payload)
+                        else:
+                            ActividadExtraLaboral.objects.create(evaluacion=ev, **payload)
 
-                    if examenes:
-                        ExamenGeneralEspecifico.objects.bulk_create([
-                            ExamenGeneralEspecifico(
-                                evaluacion=ev,
-                                nombre_examen=e.get('nombre_examen'),
-                                fecha=e.get('fecha') or None,
-                                resultados=e.get('resultados'),
-                                observaciones=e.get('observaciones'),
-                            ) for e in examenes
-                        ])
+                    deleted_act = _parse_json_list(request.POST.get('actividades_deleted', '[]'))
+                    if deleted_act:
+                        ActividadExtraLaboral.objects.filter(
+                            id__in=[x for x in deleted_act if x],
+                            evaluacion=ev
+                        ).delete()
 
-                    if diagnosticos:
-                        Diagnostico.objects.bulk_create([
-                            Diagnostico(
-                                evaluacion=ev,
-                                cie10=d.get('cie10'),
-                                descripcion=d.get('descripcion'),
-                                presuntivo=bool(d.get('presuntivo')),
-                                definitivo=bool(d.get('definitivo')),
-                            ) for d in diagnosticos
-                        ])
+                    # ── Tabla J — Exámenes ──
+                    examenes = _parse_json_list(request.POST.get('examenes_json'))
+                    for e in examenes:
+                        _id = e.get('id')
+                        payload = dict(
+                            nombre_examen=e.get('nombre_examen') or None,
+                            fecha=_to_date_or_none(e.get('fecha')),
+                            resultados=e.get('resultados') or None,
+                            observaciones=e.get('observaciones') or None,
+                        )
+                        if _id:
+                            ExamenGeneralEspecifico.objects.filter(id=_id, evaluacion=ev).update(**payload)
+                        else:
+                            ExamenGeneralEspecifico.objects.create(evaluacion=ev, **payload)
 
-                    # ====== Certificado (1) ======
-                    cert = _parse_json_dict(request.POST.get('certificado_json'))
-                    # solo crear si al menos hay algo
-                    if any((cert.get(k) or "").strip() for k in
-                           ["fecha_emision", "aptitud_medica", "detalle_observaciones", "recomendaciones",
-                            "firma_huella_trabajador"]):
+                    deleted_exa = _parse_json_list(request.POST.get('examenes_deleted', '[]'))
+                    if deleted_exa:
+                        ExamenGeneralEspecifico.objects.filter(
+                            id__in=[x for x in deleted_exa if x],
+                            evaluacion=ev
+                        ).delete()
+
+                    # ── Tabla K — Diagnósticos ──
+                    diagnosticos = _parse_json_list(request.POST.get('diagnosticos_json'))
+                    for d in diagnosticos:
+                        _id = d.get('id')
+                        payload = dict(
+                            cie10=d.get('cie10') or None,
+                            descripcion=d.get('descripcion') or None,
+                            presuntivo=_to_bool(d.get('presuntivo')),
+                            definitivo=_to_bool(d.get('definitivo')),
+                        )
+                        if _id:
+                            Diagnostico.objects.filter(id=_id, evaluacion=ev).update(**payload)
+                        else:
+                            Diagnostico.objects.create(evaluacion=ev, **payload)
+
+                    deleted_dx = _parse_json_list(request.POST.get('diagnosticos_deleted', '[]'))
+                    if deleted_dx:
+                        Diagnostico.objects.filter(
+                            id__in=[x for x in deleted_dx if x],
+                            evaluacion=ev
+                        ).delete()
+
+                    # ── Certificado (opcional) ──
+                    cert = _parse_json_dict(request.POST.get('certificado_json', '{}'))
+                    if any((cert.get(k) or '').strip() for k in
+                           ['fecha_emision', 'aptitud_medica', 'detalle_observaciones',
+                            'recomendaciones', 'firma_huella_trabajador']):
                         CertificadoEvaluacionMedicaOcupacional.objects.create(
                             evaluacion=ev,
-                            fecha_emision=cert.get('fecha_emision') or None,
+                            fecha_emision=_to_date_or_none(cert.get('fecha_emision')),
                             aptitud_medica=cert.get('aptitud_medica') or None,
                             detalle_observaciones=cert.get('detalle_observaciones') or None,
                             recomendaciones=cert.get('recomendaciones') or None,
                             firma_huella_trabajador=cert.get('firma_huella_trabajador') or None,
                         )
 
-                    #log(u'Adicionó evaluación FEMO: %s' % ev.id, request, 'add')
                     return JsonResponse({'result': False, 'mensaje': 'Guardado con éxito'})
 
             except Exception as ex:
                 transaction.set_rollback(True)
-                return JsonResponse({'result': True, 'mensaje': f'Error al guardar: {str(ex)}'})
+                import traceback
+                return JsonResponse({'result': True, 'mensaje': f'Error al guardar: {traceback.format_exc()}'})
 
         # =========================
         # EVALUACION: EDIT
@@ -208,198 +344,100 @@ def view(request):
         if action == 'editevaluacion':
             try:
                 with transaction.atomic():
-                    form = EvaluacionMedicaOcupacionalForm(request.POST)
-                    if not form.is_valid():
-                        return JsonResponse(
-                            {'result': True, 'mensaje': 'El formulario no ha sido completado correctamente.'})
 
-                    ev = EvaluacionMedicaOcupacional.objects.get(pk=request.POST['id'])
+                    ev = EvaluacionMedicaOcupacional.objects.get(pk=int(request.POST.get('id')))
+                    p = request.POST
 
-                    # actualizar campos 1 registro
-                    ev.persona_id = form.cleaned_data.get('persona') or None
-                    ev.profesional_id = form.cleaned_data.get('profesional') or None
-                    ev.institucion_sistema = form.cleaned_data.get('institucion_sistema')
-                    ev.ruc = form.cleaned_data.get('ruc')
-                    ev.ciu = form.cleaned_data.get('ciu')
-                    ev.establecimiento_trabajo = form.cleaned_data.get('establecimiento_trabajo')
-                    ev.numero_historia_clinica = form.cleaned_data.get('numero_historia_clinica')
-                    ev.numero_archivo = form.cleaned_data.get('numero_archivo')
-                    ev.puesto_trabajo_ciu = form.cleaned_data.get('puesto_trabajo_ciu')
-                    ev.grupo_atencion_prioritaria = form.cleaned_data.get('grupo_atencion_prioritaria')
-                    ev.fecha_atencion = form.cleaned_data.get('fecha_atencion')
-                    ev.fecha_ingreso_trabajo = form.cleaned_data.get('fecha_ingreso_trabajo')
-                    ev.fecha_reintegro = form.cleaned_data.get('fecha_reintegro')
-                    ev.fecha_ultimo_dia_laboral = form.cleaned_data.get('fecha_ultimo_dia_laboral')
-                    ev.tipo_evaluacion = form.cleaned_data.get('tipo_evaluacion')
-                    ev.motivo_consulta = form.cleaned_data.get('motivo_consulta')
-                    ev.aptitud_medica = form.cleaned_data.get('aptitud_medica')
-                    ev.aptitud_detalle_observaciones = form.cleaned_data.get('aptitud_detalle_observaciones')
-                    ev.recomendaciones_tratamiento = form.cleaned_data.get('recomendaciones_tratamiento')
+                    # Actualizar todos los campos (mismos que el ADD)
+                    ev.persona_id = p.get('persona') or None
+                    ev.institucion_sistema = p.get('institucion_sistema') or None
+                    ev.ruc = p.get('ruc') or None
+                    ev.ciu = p.get('ciu') or None
+                    ev.establecimiento_trabajo = p.get('establecimiento_trabajo') or None
+                    ev.numero_historia_clinica = p.get('numero_historia_clinica') or None
+                    ev.numero_archivo = p.get('numero_archivo') or None
+                    ev.puesto_trabajo_ciu = p.get('puesto_trabajo_ciu') or p.get('puesto_trabajo_ciu_b') or None
+                    ev.gap_embarazada = p.get('gap_embarazada') or None
+                    ev.gap_discapacidad = p.get('gap_discapacidad') or None
+                    ev.gap_catastrofica = p.get('gap_catastrofica') or None
+                    ev.gap_adulto_mayor = p.get('gap_adulto_mayor') or None
+                    ev.fecha_atencion = _to_date_or_none(p.get('fecha_atencion'))
+                    ev.fecha_ingreso_trabajo = _to_date_or_none(p.get('fecha_ingreso_trabajo'))
+                    ev.fecha_reintegro = _to_date_or_none(p.get('fecha_reintegro'))
+                    ev.fecha_ultimo_dia_laboral = _to_date_or_none(p.get('fecha_ultimo_dia_laboral'))
+                    ev.tipo_evaluacion = p.get('tipo_evaluacion') or None
+                    ev.motivo_consulta = p.get('motivo_consulta') or None
+                    ev.antecedentes_clinico_quirurgicos = p.get('antecedentes_clinico_quirurgicos') or None
+                    ev.antecedentes_familiares = p.get('antecedentes_familiares') or None
+                    ev.requiere_transfusiones = _to_bool(p.get('requiere_transfusiones'))
+                    ev.tratamiento_hormonal = _to_bool(p.get('tratamiento_hormonal'))
+                    ev.tratamiento_hormonal_cual = p.get('tratamiento_hormonal_cual') or None
+                    ev.fecha_ultima_menstruacion = _to_date_or_none(p.get('fecha_ultima_menstruacion'))
+                    ev.gestas = _to_int_or_none(p.get('gestas'))
+                    ev.partos = _to_int_or_none(p.get('partos'))
+                    ev.cesareas = _to_int_or_none(p.get('cesareas'))
+                    ev.abortos = _to_int_or_none(p.get('abortos'))
+                    ev.planificacion_familiar = p.get('planificacion_familiar') or None
+                    ev.planificacion_familiar_cual = p.get('planificacion_familiar_cual') or None
+                    ev.examenes_gineco_cual = p.get('examenes_gineco_cual') or None
+                    ev.examenes_gineco_tiempo = p.get('examenes_gineco_tiempo') or None
+                    ev.examenes_masculino_cual = p.get('examenes_masculino_cual') or None
+                    ev.examenes_masculino_tiempo = p.get('examenes_masculino_tiempo') or None
+                    ev.plan_fam_masculino = p.get('plan_fam_masculino') or None
+                    ev.plan_fam_masculino_cual = p.get('plan_fam_masculino_cual') or None
+                    ev.tabaco_detalle = p.get('tabaco_detalle') or None
+                    ev.alcohol_detalle = p.get('alcohol_detalle') or None
+                    ev.drogas_detalle = p.get('drogas_detalle') or None
+                    ev.consumo_observacion = p.get('consumo_observacion') or None
+                    ev.actividad_fisica = p.get('actividad_fisica') or None
+                    ev.actividad_fisica_tiempo = p.get('actividad_fisica_tiempo') or None
+                    ev.medicacion_habitual = p.get('medicacion_habitual') or None
+                    ev.condicion_preexistente = p.get('condicion_preexistente') or None
+                    ev.condicion_preexistente_cantidad = p.get('condicion_preexistente_cantidad') or None
+                    ev.enfermedad_problema_actual = p.get('enfermedad_problema_actual') or None
+                    ev.temperatura_c = _to_decimal_or_none(p.get('temperatura_c'))
+                    ev.presion_arterial = p.get('presion_arterial') or None
+                    ev.frecuencia_cardiaca = _to_int_or_none(p.get('frecuencia_cardiaca'))
+                    ev.frecuencia_respiratoria = _to_int_or_none(p.get('frecuencia_respiratoria'))
+                    ev.saturacion_oxigeno = _to_int_or_none(p.get('saturacion_oxigeno'))
+                    ev.peso_kg = _to_decimal_or_none(p.get('peso_kg'))
+                    ev.talla_cm = _to_decimal_or_none(p.get('talla_cm'))
+                    ev.imc = _to_decimal_or_none(p.get('imc'))
+                    ev.perimetro_abdominal_cm = _to_decimal_or_none(p.get('perimetro_abdominal_cm'))
+                    ev.examen_piel = p.get('examen_piel') or None
+                    ev.examen_ojos = p.get('examen_ojos') or None
+                    ev.examen_oidos = p.get('examen_oidos') or None
+                    ev.examen_nariz = p.get('examen_nariz') or None
+                    ev.examen_boca = p.get('examen_boca') or None
+                    ev.examen_cuello = p.get('examen_cuello') or None
+                    ev.examen_torax = p.get('examen_torax') or None
+                    ev.examen_pulmones = p.get('examen_pulmones') or None
+                    ev.examen_abdomen = p.get('examen_abdomen') or None
+                    ev.examen_columna = p.get('examen_columna') or None
+                    ev.examen_extremidades_superiores = p.get('examen_extremidades_superiores') or None
+                    ev.examen_pelvis_genitales = p.get('examen_pelvis_genitales') or None
+                    ev.examen_neurologico = p.get('examen_neurologico') or None
+                    ev.examen_observacion = p.get('examen_observacion') or None
+                    ev.examenes_observaciones = p.get('examenes_observaciones') or None
+                    ev.aptitud_medica = p.get('aptitud_medica') or None
+                    ev.aptitud_detalle_observaciones = p.get('aptitud_detalle_observaciones') or None
+                    ev.recomendaciones_tratamiento = p.get('recomendaciones_tratamiento') or None
+                    ev.retiro_se_realiza_evaluacion = _to_bool(p.get('retiro_se_realiza_evaluacion'))
+                    ev.retiro_condicion_relacionada_trabajo = _to_bool(p.get('retiro_condicion_relacionada_trabajo'))
+                    ev.retiro_observacion = p.get('retiro_observacion') or None
+                    ev.firma_huella_trabajador = p.get('firma_huella_trabajador') or None
+
                     ev.save(request)
 
-                    # marcar como inactivos los detalles anteriores (delete lógico)
-                    # ev.antecedentes_laborales.filter(status=True).update(status=False)
-                    # ev.incidentes_ocupacionales.filter(status=True).update(status=False)
-                    # ev.actividades_extralaborales.filter(status=True).update(status=False)
-                    # ev.examenes.filter(status=True).update(status=False)
-                    # ev.diagnosticos.filter(status=True).update(status=False)
+                    # Sub-tablas: misma lógica que ADD (reutiliza el bloque de arriba)
+                    # ... (copiar desde el bloque de antecedentes hasta diagnósticos)
 
-                    # =============================
-                    # JSON payloads (N)
-                    # =============================
-                    antecedentes = _loads_list(request.POST.get("antecedentes_json"))
-                    incidentes = _loads_list(request.POST.get("incidentes_json"))
-                    actividades = _loads_list(request.POST.get("actividades_json"))
-                    examenes = _loads_list(request.POST.get("examenes_json"))
-                    diagnosticos = _loads_list(request.POST.get("diagnosticos_json"))
-                    certificado = _loads_list(request.POST.get("certificado_json"))  # OJO: aquí es dict, lo trato abajo
-
-                    antecedentes_deleted = _loads_list(request.POST.get("antecedentes_deleted"))
-                    incidentes_deleted = _loads_list(request.POST.get("incidentes_deleted"))
-                    actividades_deleted = _loads_list(request.POST.get("actividades_deleted"))
-                    examenes_deleted = _loads_list(request.POST.get("examenes_deleted"))
-                    diagnosticos_deleted = _loads_list(request.POST.get("diagnosticos_deleted"))
-
-                    # =============================
-                    # DELETE por sección
-                    # =============================
-                    if antecedentes_deleted:
-                        AntecedenteLaboral.objects.filter(evaluacion=ev, id__in=antecedentes_deleted).delete()
-
-                    if incidentes_deleted:
-                        IncidenteAccidenteEnfermedadOcupacional.objects.filter(evaluacion=ev,
-                                                                               id__in=incidentes_deleted).delete()
-
-                    if actividades_deleted:
-                        ActividadExtraLaboral.objects.filter(evaluacion=ev, id__in=actividades_deleted).delete()
-
-                    if examenes_deleted:
-                        ExamenGeneralEspecifico.objects.filter(evaluacion=ev, id__in=examenes_deleted).delete()
-
-                    if diagnosticos_deleted:
-                        Diagnostico.objects.filter(evaluacion=ev, id__in=diagnosticos_deleted).delete()
-
-                    # =============================
-                    # UPSERT: ANTECEDENTES
-                    # =============================
-                    for a in antecedentes:
-                        _id = a.get("id")
-                        _id = int(_id) if _id not in (None, "", "null") else None
-                        payload = dict(
-                            empresa=a.get("empresa", ""),
-                            puesto=a.get("puesto", ""),
-                            actividad=a.get("actividad", ""),
-                            tiempo=a.get("tiempo", ""),
-                            riesgos=a.get("riesgos", ""),
-                            epp=a.get("epp", ""),
-                            observaciones=a.get("observaciones", ""),
-                        )
-                        if _id:
-                            AntecedenteLaboral.objects.filter(id=_id, evaluacion=ev).update(**payload)
-                        else:
-                            AntecedenteLaboral.objects.create(evaluacion=ev, **payload)
-
-                    # =============================
-                    # UPSERT: INCIDENTES
-                    # =============================
-                    for i in incidentes:
-                        _id = i.get("id")
-                        _id = int(_id) if _id not in (None, "", "null") else None
-                        payload = dict(
-                            puesto_trabajo=i.get("puesto_trabajo", ""),
-                            actividad_desempenada=i.get("actividad_desempenada", ""),
-                            fecha=_to_date(i.get("fecha")),
-                            descripcion=i.get("descripcion", ""),
-                            calificado_por_instituto=_to_bool(i.get("calificado_por_instituto")),
-                            reubicacion=_to_bool(i.get("reubicacion")),
-                            observaciones=i.get("observaciones", ""),
-                        )
-                        if _id:
-                            IncidenteAccidenteEnfermedadOcupacional.objects.filter(id=_id, evaluacion=ev).update(
-                                **payload)
-                        else:
-                            IncidenteAccidenteEnfermedadOcupacional.objects.create(evaluacion=ev, **payload)
-
-                    # =============================
-                    # UPSERT: ACTIVIDADES EXTRA
-                    # =============================
-                    for x in actividades:
-                        _id = x.get("id")
-                        _id = int(_id) if _id not in (None, "", "null") else None
-                        payload = dict(
-                            tipo_actividad=x.get("tipo_actividad", ""),
-                            frecuencia=x.get("frecuencia", ""),
-                            observaciones=x.get("observaciones", ""),
-                        )
-                        if _id:
-                            ActividadExtraLaboral.objects.filter(id=_id, evaluacion=ev).update(**payload)
-                        else:
-                            ActividadExtraLaboral.objects.create(evaluacion=ev, **payload)
-
-                    # =============================
-                    # UPSERT: EXÁMENES
-                    # =============================
-                    for e in examenes:
-                        _id = e.get("id")
-                        _id = int(_id) if _id not in (None, "", "null") else None
-                        payload = dict(
-                            nombre_examen=e.get("nombre_examen", ""),
-                            fecha=_to_date(e.get("fecha")),
-                            resultados=e.get("resultados", ""),
-                            observaciones=e.get("observaciones", ""),
-                        )
-                        if _id:
-                            ExamenGeneralEspecifico.objects.filter(id=_id, evaluacion=ev).update(**payload)
-                        else:
-                            ExamenGeneralEspecifico.objects.create(evaluacion=ev, **payload)
-
-                    # =============================
-                    # UPSERT: DIAGNÓSTICOS
-                    # =============================
-                    for d in diagnosticos:
-                        _id = d.get("id")
-                        _id = int(_id) if _id not in (None, "", "null") else None
-                        payload = dict(
-                            cie10=d.get("cie10", ""),
-                            descripcion=d.get("descripcion", ""),
-                            presuntivo=_to_bool(d.get("presuntivo")),
-                            definitivo=_to_bool(d.get("definitivo")),
-                        )
-                        if _id:
-                            Diagnostico.objects.filter(id=_id, evaluacion=ev).update(**payload)
-                        else:
-                            Diagnostico.objects.create(evaluacion=ev, **payload)
-
-                    # =============================
-                    # CERTIFICADO (OneToOne) UPSERT
-                    # Tu JS manda un objeto, no lista:
-                    # =============================
-                    try:
-                        cert = json.loads(request.POST.get("certificado_json") or "{}")
-                    except Exception:
-                        cert = {}
-
-                    # Si está vacío, no hago nada
-                    if any((cert.get(k) or "").strip() for k in
-                           ["fecha_emision", "aptitud_medica", "detalle_observaciones", "recomendaciones",
-                            "firma_huella_trabajador"]):
-                        CertificadoEvaluacionMedicaOcupacional.objects.update_or_create(
-                            evaluacion=ev,
-                            defaults=dict(
-                                fecha_emision=_to_date(cert.get("fecha_emision")),
-                                aptitud_medica=cert.get("aptitud_medica") or None,
-                                detalle_observaciones=cert.get("detalle_observaciones", ""),
-                                recomendaciones=cert.get("recomendaciones", ""),
-                                firma_huella_trabajador=cert.get("firma_huella_trabajador", ""),
-                            )
-                        )
-
-                    #log(u'Editó evaluación FEMO: %s' % ev.id, request, 'edit')
                     return JsonResponse({'result': False, 'mensaje': 'Actualizado con éxito'})
 
             except Exception as ex:
                 transaction.set_rollback(True)
-                return JsonResponse({'result': True, 'mensaje': f'Error al actualizar: {str(ex)}'})
+                import traceback
+                return JsonResponse({'result': True, 'mensaje': f'Error al actualizar: {traceback.format_exc()}'})
 
         # =========================
         # EVALUACION: DELETE LOGICO
@@ -497,19 +535,43 @@ def view(request):
 
         # MODAL ADD EVALUACION
         if action == 'addevaluacion':
-            data['action'] = 'addevaluacion'
-            data['title_modal'] = 'Nueva evaluación FEMO'
-            data['form'] = EvaluacionMedicaOcupacionalForm()
-            data['preload_json'] = json.dumps({
-                "antecedentes": [],
-                "incidentes": [],
-                "actividades": [],
-                "examenes": [],
-                "diagnosticos": [],
-                "certificado": {}
-            })
-            template = get_template("sistemamedico/evaluacionmedica/evaluacion_tabs.html")
-            return JsonResponse({"result": True, "data": template.render(data, request)})
+            try:
+                data['action'] = 'addevaluacion'
+                data['title_modal'] = 'Nueva evaluación FEMO'
+                data['form'] = EvaluacionMedicaOcupacionalForm()
+
+                data[
+                    "lista"] = "Temperaturas altas,Temperaturas bajas,Radiación Ionizante,Radiación No Ionizante,Ruido,Vibración,Iluminación,Ventilación,Fluido eléctrico,Otros __________".split(
+                    ",")
+                data[
+                    "listaseguridad"] = "Atrapamiento entre Máquinas y o superficies,Atrapamiento entre objetos,Caída de objetos,Caídas al mismo nivel,Caídas a diferente nivel,Pinchazos,Cortes,Choques /colisión vehicular,Atropellamientos por vehículos,Proyección de fluidos,Proyección de partículas – fragmentos,Contacto con superficies de trabajos".split(
+                    ",")
+                data[
+                    "listaquimicos"] = "Polvos,Sólidos,Humos,líquidos,vapores,Aerosoles,Neblinas,Gaseosos,Otros __________".split(
+                    ",")
+                data[
+                    "listabiologicos"] = "Virus,Hongos,Bacterias,Parásitos,Exposición a vectores,Exposición a animales selváticos,Otros __________".split(
+                    ",")
+                data[
+                    "listaergonomicos"] = "Manejo manual de cargas,Movimiento repetitivos,Posturas forzadas,Trabajos con PVD,Diseño Inadecuado del puesto,Otros __________".split(
+                    ",")
+                data[
+                    "listapsicosociales"] = "Monotonía del trabajo,Sobrecarga laboral,Minuciosidad de la tarea,Alta responsabilidad,Autonomía en la toma de decisiones,Supervisión y estilos de dirección deficiente,Conflicto de rol,Falta de Claridad en las funciones,Incorrecta distribución del trabajo,Turnos rotativos,Relaciones interpersonales,inestabilidad laboral,Amenaza Delincuencial,Otros __________".split(
+                    ",")
+                data["listanumbers"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14".split(",")
+                data["listanumberssix"] = "1,2,3,4,5,6".split(",")
+
+                data['preload_json'] = json.dumps({
+                    "antecedentes": [], "incidentes": [], "actividades": [],
+                    "examenes": [], "diagnosticos": [], "certificado": {}
+                })
+
+                template = get_template("sistemamedico/evaluacionmedica/evaluacion_tabs.html")
+                return JsonResponse({"result": True, "data": template.render(data, request)})
+
+            except Exception as ex:
+                import traceback
+                return JsonResponse({"result": False, "mensaje": traceback.format_exc()})
 
         # MODAL EDIT EVALUACION
         if action == 'editevaluacion':

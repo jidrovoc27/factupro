@@ -77,3 +77,30 @@ def calculate_username(persona, variant=1):
         return usernamevariantfinal
     else:
         return calculate_username(persona, variant + 1)
+
+def _to_bool(val):
+    """Convierte cualquier valor truthy/falsy a bool, acepta None."""
+    if val is None:
+        return None
+    return val in (True, 'true', '1', 1)
+
+
+def _to_int_or_none(val):
+    try:
+        return int(val) if val not in (None, '', 'null') else None
+    except (ValueError, TypeError):
+        return None
+
+
+def _to_decimal_or_none(val):
+    try:
+        from decimal import Decimal
+        return Decimal(str(val)) if val not in (None, '', 'null') else None
+    except Exception:
+        return None
+
+
+def _to_date_or_none(val):
+    if not val or val in ('null', 'undefined'):
+        return None
+    return val  # Django acepta strings 'YYYY-MM-DD' directamente

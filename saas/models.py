@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.query_utils import Q
 from django.contrib.auth.models import User, Group
 from base.modelobase import ModeloBase
-from base.choices import TIPO_IDENTIFICACION
+from base.choices import *
 
 class CategoriaModulo(ModeloBase):
     orden = models.IntegerField(default=0, verbose_name='Orden')
@@ -202,114 +202,153 @@ class EvaluacionMedicaOcupacional(ModeloBase):
         blank=True, null=True, related_name="evaluaciones"
     )
 
-    institucion_sistema = models.CharField(max_length=255, blank=True, null=True)
-    ruc = models.CharField(max_length=20, blank=True, null=True)
-    ciu = models.CharField(max_length=50, blank=True, null=True)
-    establecimiento_trabajo = models.CharField(max_length=255, blank=True, null=True)
-    numero_historia_clinica = models.CharField(max_length=50, blank=True, null=True)
-    numero_archivo = models.CharField(max_length=50, blank=True, null=True)
-    puesto_trabajo_ciu = models.CharField(max_length=255, blank=True, null=True)
+    # ── A. Datos del establecimiento ──
+    institucion_sistema        = models.CharField(max_length=255, blank=True, null=True)
+    ruc                        = models.CharField(max_length=20,  blank=True, null=True)
+    ciu                        = models.CharField(max_length=50,  blank=True, null=True)
+    establecimiento_trabajo    = models.CharField(max_length=255, blank=True, null=True)
+    numero_historia_clinica    = models.CharField(max_length=50,  blank=True, null=True)
+    numero_archivo             = models.CharField(max_length=50,  blank=True, null=True)
+    puesto_trabajo_ciu         = models.CharField(max_length=255, blank=True, null=True)
+
+    # Grupo de atención prioritaria — 4 checks independientes
+    gap_embarazada    = models.CharField(max_length=5, blank=True, null=True,
+                                         choices=RESPUESTA_SIMPLE)
+    gap_discapacidad  = models.CharField(max_length=5, blank=True, null=True,
+                                         choices=RESPUESTA_SIMPLE)
+    gap_catastrofica  = models.CharField(max_length=5, blank=True, null=True,
+                                         choices=RESPUESTA_SIMPLE)
+    gap_adulto_mayor  = models.CharField(max_length=5, blank=True, null=True,
+                                         choices=RESPUESTA_SIMPLE)
+
+    # Campo legacy (mantener por compatibilidad)
     grupo_atencion_prioritaria = models.CharField(max_length=255, blank=True, null=True)
 
-    fecha_atencion = models.DateField(blank=True, null=True)
-    fecha_ingreso_trabajo = models.DateField(blank=True, null=True)
-    fecha_reintegro = models.DateField(blank=True, null=True)
-    fecha_ultimo_dia_laboral = models.DateField(blank=True, null=True)
+    # ── B. Motivo de consulta ──
+    fecha_atencion          = models.DateField(blank=True, null=True)
+    fecha_ingreso_trabajo   = models.DateField(blank=True, null=True)
+    fecha_reintegro         = models.DateField(blank=True, null=True)
+    fecha_ultimo_dia_laboral= models.DateField(blank=True, null=True)
 
     tipo_evaluacion = models.CharField(
-        max_length=20,
-        blank=True, null=True,
-        choices=(
-            ("INGRESO", "Ingreso"),
-            ("PERIODICO", "Periódico"),
-            ("REINTEGRO", "Reintegro"),
-            ("RETIRO", "Retiro"),
-            ("OTRO", "Otro"),
-        )
+        max_length=20, blank=True, null=True,
+        choices=TIPO_EVALUACION_CHOICES
     )
     motivo_consulta = models.TextField(blank=True, null=True)
 
+    # ── C. Antecedentes personales ──
     antecedentes_clinico_quirurgicos = models.TextField(blank=True, null=True)
-    antecedentes_familiares = models.TextField(blank=True, null=True)
+    antecedentes_familiares          = models.TextField(blank=True, null=True)
 
-    requiere_transfusiones = models.BooleanField(blank=True, null=True)
-    tratamiento_hormonal = models.BooleanField(blank=True, null=True)
-    tratamiento_hormonal_cual = models.CharField(max_length=255, blank=True, null=True)
+    requiere_transfusiones   = models.BooleanField(blank=True, null=True)
+    tratamiento_hormonal     = models.BooleanField(blank=True, null=True)
+    tratamiento_hormonal_cual= models.CharField(max_length=255, blank=True, null=True)
 
+    # Gineco-obstétrico
     fecha_ultima_menstruacion = models.DateField(blank=True, null=True)
-    gestas = models.PositiveIntegerField(blank=True, null=True)
-    partos = models.PositiveIntegerField(blank=True, null=True)
-    cesareas = models.PositiveIntegerField(blank=True, null=True)
-    abortos = models.PositiveIntegerField(blank=True, null=True)
+    gestas    = models.PositiveIntegerField(blank=True, null=True)
+    partos    = models.PositiveIntegerField(blank=True, null=True)
+    cesareas  = models.PositiveIntegerField(blank=True, null=True)
+    abortos   = models.PositiveIntegerField(blank=True, null=True)
 
-    planificacion_familiar = models.CharField(
-        max_length=20,
-        blank=True, null=True,
-        choices=(("SI", "Sí"), ("NO", "No"), ("NR", "No responde"))
-    )
+    planificacion_familiar      = models.CharField(max_length=20, blank=True, null=True,
+                                                    choices=OPCIONES_RESPUESTA)
     planificacion_familiar_cual = models.CharField(max_length=255, blank=True, null=True)
 
-    tabaco_detalle = models.CharField(max_length=100, blank=True, null=True)
-    alcohol_detalle = models.CharField(max_length=100, blank=True, null=True)
-    drogas_detalle = models.CharField(max_length=255, blank=True, null=True)
+    # Exámenes ginecológicos
+    examenes_gineco_cual   = models.CharField(max_length=255, blank=True, null=True)
+    examenes_gineco_tiempo = models.CharField(max_length=100, blank=True, null=True)
+
+    # Reproductivos masculinos
+    examenes_masculino_cual   = models.CharField(max_length=255, blank=True, null=True)
+    examenes_masculino_tiempo = models.CharField(max_length=100, blank=True, null=True)
+    plan_fam_masculino        = models.CharField(max_length=20, blank=True, null=True,
+                                                  choices=OPCIONES_RESPUESTA)
+    plan_fam_masculino_cual   = models.CharField(max_length=255, blank=True, null=True)
+
+    # Consumo de sustancias
+    tabaco_detalle      = models.CharField(max_length=100, blank=True, null=True)
+    tabaco_ex_consumidor      = models.CharField(max_length=100, blank=True, null=True)
+    tabaco_tiempo_abstinencia      = models.CharField(max_length=100, blank=True, null=True)
+    tabaco_no_consume      = models.CharField(max_length=100, blank=True, null=True)
+    alcohol_detalle     = models.CharField(max_length=100, blank=True, null=True)
+    alcohol_ex_consumidor = models.CharField(max_length=100, blank=True, null=True)
+    alcohol_tiempo_abstinencia = models.CharField(max_length=100, blank=True, null=True)
+    alcohol_no_consume = models.CharField(max_length=100, blank=True, null=True)
+    drogas_detalle      = models.CharField(max_length=255, blank=True, null=True)
+    drogas_ex_consumidor = models.CharField(max_length=100, blank=True, null=True)
+    drogas_tiempo_abstinencia = models.CharField(max_length=100, blank=True, null=True)
+    drogas_no_consume = models.CharField(max_length=100, blank=True, null=True)
     consumo_observacion = models.TextField(blank=True, null=True)
 
-    actividad_fisica = models.CharField(max_length=255, blank=True, null=True)
+    # Estilo de vida
+    actividad_fisica        = models.CharField(max_length=255, blank=True, null=True)
+    actividad_fisica_cual   = models.CharField(max_length=255, blank=True, null=True)
     actividad_fisica_tiempo = models.CharField(max_length=100, blank=True, null=True)
 
-    medicacion_habitual = models.CharField(max_length=255, blank=True, null=True)
-    condicion_preexistente = models.CharField(max_length=255, blank=True, null=True)
+    # Condición preexistente
+    medicacion_habitual             = models.CharField(max_length=255, blank=True, null=True)
+    condicion_preexistente          = models.CharField(max_length=255, blank=True, null=True)
     condicion_preexistente_cantidad = models.CharField(max_length=100, blank=True, null=True)
 
+    # ── D. Enfermedad actual ──
     enfermedad_problema_actual = models.TextField(blank=True, null=True)
 
-    temperatura_c = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    presion_arterial = models.CharField(max_length=20, blank=True, null=True)
-    frecuencia_cardiaca = models.PositiveIntegerField(blank=True, null=True)
-    frecuencia_respiratoria = models.PositiveIntegerField(blank=True, null=True)
-    saturacion_oxigeno = models.PositiveIntegerField(blank=True, null=True)
-    peso_kg = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
-    talla_cm = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
-    imc = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
-    perimetro_abdominal_cm = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    # ── E. Constantes vitales ──
+    temperatura_c          = models.DecimalField(max_digits=5,  decimal_places=2, blank=True, null=True)
+    presion_arterial       = models.CharField(max_length=20,   blank=True, null=True)
+    frecuencia_cardiaca    = models.PositiveIntegerField(blank=True, null=True)
+    frecuencia_respiratoria= models.PositiveIntegerField(blank=True, null=True)
+    saturacion_oxigeno     = models.PositiveIntegerField(blank=True, null=True)
+    peso_kg                = models.DecimalField(max_digits=7,  decimal_places=2, blank=True, null=True)
+    talla_cm               = models.DecimalField(max_digits=6,  decimal_places=2, blank=True, null=True)
+    imc                    = models.DecimalField(max_digits=6,  decimal_places=2, blank=True, null=True)
+    perimetro_abdominal_cm = models.DecimalField(max_digits=6,  decimal_places=2, blank=True, null=True)
 
-    examen_cabeza = models.TextField(blank=True, null=True)
-    examen_ojos = models.TextField(blank=True, null=True)
-    examen_oidos = models.TextField(blank=True, null=True)
-    examen_nariz = models.TextField(blank=True, null=True)
-    examen_boca = models.TextField(blank=True, null=True)
-    examen_faringe = models.TextField(blank=True, null=True)
-    examen_cuello = models.TextField(blank=True, null=True)
-    examen_torax = models.TextField(blank=True, null=True)
-    examen_pulmones = models.TextField(blank=True, null=True)
-    examen_corazon = models.TextField(blank=True, null=True)
-    examen_abdomen = models.TextField(blank=True, null=True)
-    examen_columna = models.TextField(blank=True, null=True)
-    examen_extremidades_superiores = models.TextField(blank=True, null=True)
-    examen_extremidades_inferiores = models.TextField(blank=True, null=True)
-    examen_piel = models.TextField(blank=True, null=True)
-    examen_neurologico = models.TextField(blank=True, null=True)
-    examen_pelvis_genitales = models.TextField(blank=True, null=True)
-    examen_observacion = models.TextField(blank=True, null=True)
+    # ── F. Examen físico regional ──
+    examen_piel                   = models.TextField(blank=True, null=True)
+    examen_ojos                   = models.TextField(blank=True, null=True)
+    examen_oidos                  = models.TextField(blank=True, null=True)
+    examen_nariz                  = models.TextField(blank=True, null=True)
+    examen_boca                   = models.TextField(blank=True, null=True)  # incluye orofaringe
+    examen_faringe                = models.TextField(blank=True, null=True)
+    examen_cuello                 = models.TextField(blank=True, null=True)
+    examen_torax                  = models.TextField(blank=True, null=True)
+    examen_pulmones               = models.TextField(blank=True, null=True)  # tórax interno
+    examen_corazon                = models.TextField(blank=True, null=True)
+    examen_abdomen                = models.TextField(blank=True, null=True)
+    examen_columna                = models.TextField(blank=True, null=True)
+    examen_extremidades_superiores= models.TextField(blank=True, null=True)
+    examen_extremidades_inferiores= models.TextField(blank=True, null=True)
+    examen_pelvis_genitales       = models.TextField(blank=True, null=True)
+    examen_neurologico            = models.TextField(blank=True, null=True)
+    examen_cabeza                 = models.TextField(blank=True, null=True)  # legacy
+    examen_observacion            = models.TextField(blank=True, null=True)
 
+    # ── J. Observaciones generales de exámenes ──
+    examenes_observaciones = models.TextField(blank=True, null=True)
+
+    # ── L. Aptitud médica ──
     aptitud_medica = models.CharField(
-        max_length=30,
-        blank=True, null=True,
+        max_length=30, blank=True, null=True,
         choices=(
-            ("APTO", "Apto"),
+            ("APTO",             "Apto"),
             ("APTO_OBSERVACION", "Apto en observación"),
-            ("APTO_LIMITACIONES", "Apto con limitaciones"),
-            ("NO_APTO", "No apto"),
+            ("APTO_LIMITACIONES","Apto con limitaciones"),
+            ("NO_APTO",          "No apto"),
         )
     )
     aptitud_detalle_observaciones = models.TextField(blank=True, null=True)
 
+    # ── M. Recomendaciones ──
     recomendaciones_tratamiento = models.TextField(blank=True, null=True)
 
-    retiro_se_realiza_evaluacion = models.BooleanField(blank=True, null=True)
+    # ── N. Retiro ──
+    retiro_se_realiza_evaluacion         = models.BooleanField(blank=True, null=True)
     retiro_condicion_relacionada_trabajo = models.BooleanField(blank=True, null=True)
-    retiro_observacion = models.TextField(blank=True, null=True)
+    retiro_observacion                   = models.TextField(blank=True, null=True)
 
+    # ── P. Firma ──
     firma_huella_trabajador = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -407,13 +446,8 @@ class CertificadoEvaluacionMedicaOcupacional(ModeloBase):
     aptitud_medica = models.CharField(
         max_length=30,
         blank=True, null=True,
-        choices=(
-            ("APTO", "Apto"),
-            ("APTO_OBSERVACION", "Apto en observación"),
-            ("APTO_LIMITACIONES", "Apto con limitaciones"),
-            ("NO_APTO", "No apto"),
+        choices=APTITUD_MEDICA,
         )
-    )
     detalle_observaciones = models.TextField(blank=True, null=True)
     recomendaciones = models.TextField(blank=True, null=True)
     firma_huella_trabajador = models.TextField(blank=True, null=True)

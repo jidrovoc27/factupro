@@ -161,10 +161,22 @@
 
     <!-- Modal container -->
     <div class="modal fade" id="modalForm" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-sm-down">
-            <div class="modal-content" id="modalFormContent"></div>
-        </div>
+  <div class="modal-dialog" style="max-width:96vw; margin:10px auto;">
+    <div class="modal-content" style="height:calc(100vh - 20px); display:flex; flex-direction:column;">
+
+      <div class="modal-header" style="flex-shrink:0">
+        <h5 class="modal-title" id="modalFormLabel">Formulario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Este div es el que hace scroll -->
+      <div class="modal-body" id="modalFormContent"
+           style="flex:1 1 auto; overflow-y:auto; overflow-x:hidden; padding:8px 12px;">
+      </div>
+
     </div>
+  </div>
+</div>
 
     <script>
         let deletedAntecedentes = [];

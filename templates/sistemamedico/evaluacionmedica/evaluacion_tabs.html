@@ -1,636 +1,1333 @@
 <form id="formModal" method="post" novalidate>
-    {% csrf_token %}
-    <input type="hidden" name="action" value="{{ action }}">
-    {% if id %}<input type="hidden" name="id" value="{{ id }}">{% endif %}
+  {% csrf_token %}
+  <input type="hidden" name="action" value="{{ action }}">
+  {% if id %}<input type="hidden" name="id" value="{{ id }}">{% endif %}
+  <input type="hidden" name="antecedentes_json"  id="antecedentes_json">
+  <input type="hidden" name="incidentes_json"    id="incidentes_json">
+  <input type="hidden" name="actividades_json"   id="actividades_json">
+  <input type="hidden" name="examenes_json"      id="examenes_json">
+  <input type="hidden" name="diagnosticos_json"  id="diagnosticos_json">
+  <input type="hidden" name="certificado_json"   id="certificado_json">
+  <input type="hidden" name="antecedentes_deleted" id="antecedentes_deleted">
+  <input type="hidden" name="incidentes_deleted"   id="incidentes_deleted">
+  <input type="hidden" name="actividades_deleted"  id="actividades_deleted">
+  <input type="hidden" name="examenes_deleted"     id="examenes_deleted">
+  <input type="hidden" name="diagnosticos_deleted" id="diagnosticos_deleted">
 
-    <!-- JSON hidden -->
-    <input type="hidden" name="antecedentes_json" id="antecedentes_json">
-    <input type="hidden" name="incidentes_json" id="incidentes_json">
-    <input type="hidden" name="actividades_json" id="actividades_json">
-    <input type="hidden" name="examenes_json" id="examenes_json">
-    <input type="hidden" name="diagnosticos_json" id="diagnosticos_json">
-    <input type="hidden" name="certificado_json" id="certificado_json">
+  <div class="femo-wrapper">
 
-    <input type="hidden" name="antecedentes_deleted" id="antecedentes_deleted">
-    <input type="hidden" name="incidentes_deleted" id="incidentes_deleted">
-    <input type="hidden" name="actividades_deleted" id="actividades_deleted">
-    <input type="hidden" name="examenes_deleted" id="examenes_deleted">
-    <input type="hidden" name="diagnosticos_deleted" id="diagnosticos_deleted">
+    <div class="main-title">FORMULARIO DE EVALUACIÓN MÉDICA OCUPACIONAL</div>
 
-
-    <div class="modal-header">
-        <h5 class="modal-title">{{ title_modal|default:"Evaluación médica ocupacional (FEMO)" }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- ─── TABS ─── -->
+    <div class="tab-nav" id="tabNav">
+      <button type="button" class="tab-btn active" data-tab="tab-p1">Pág 1 · Datos / Antecedentes</button>
+      <button type="button" class="tab-btn" data-tab="tab-p2">Pág 2 · Factores de riesgo</button>
+      <button type="button" class="tab-btn" data-tab="tab-p3">Pág 3 · Incidentes / Exámenes / Diagnóstico</button>
     </div>
 
-    <div class="modal-body">
+    <!-- ══════════════════════════════════════════════
+         PESTAÑA 1  — Página 1 del PDF
+    ══════════════════════════════════════════════ -->
+    <div class="tab-pane active" id="tab-p1">
 
-        {% if form.non_field_errors %}
-            <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
-        {% endif %}
+      <!-- A. DATOS DEL ESTABLECIMIENTO -->
+      <div class="section">
+        <div class="sec-title">A. DATOS DEL ESTABLECIMIENTO - DATOS DEL USUARIO</div>
+        <table>
+          <tr>
+            <td style="width:22%" class="col-hdr">INSTITUCIÓN DEL SISTEMA</td>
+            <td style="width:11%" class="col-hdr">RUC</td>
+            <td style="width:8%"  class="col-hdr">CIIU</td>
+            <td style="width:28%" class="col-hdr">ESTABLECIMIENTO / CENTRO DE TRABAJO</td>
+            <td style="width:21%" class="col-hdr">NÚMERO DE HISTORIA CLÍNICA</td>
+            <td style="width:10%" class="col-hdr">NÚMERO DE ARCHIVO</td>
+          </tr>
+          <tr>
+            <td><input class="fi" name="institucion_sistema" value="{{ ev.institucion_sistema|default_if_none:'' }}"></td>
+            <td><input class="fi" name="ruc" value="{{ ev.ruc|default_if_none:'' }}"></td>
+            <td><input class="fi" name="ciu" value="{{ ev.ciu|default_if_none:'' }}"></td>
+            <td><input class="fi" name="establecimiento_trabajo" value="{{ ev.establecimiento_trabajo|default_if_none:'' }}"></td>
+            <td><input class="fi" name="numero_historia_clinica" value="{{ ev.numero_historia_clinica|default_if_none:'' }}"></td>
+            <td><input class="fi" name="numero_archivo" value="{{ ev.numero_archivo|default_if_none:'' }}"></td>
+          </tr>
 
-        <ul class="nav nav-tabs" id="femoTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-general" type="button"
-                        role="tab">
-                    1) Datos generales
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-antecedentes" type="button"
-                        role="tab">
-                    2) Antecedentes laborales (N)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-incidentes" type="button" role="tab">
-                    3) Incidentes / accidentes (N)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-actividades" type="button"
-                        role="tab">
-                    4) Actividades extralaborales (N)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-examenes" type="button" role="tab">
-                    5) Exámenes (N)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-diagnosticos" type="button"
-                        role="tab">
-                    6) Diagnósticos (N)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-certificado" type="button"
-                        role="tab">
-                    7) Aptitud / Certificado
-                </button>
-            </li>
-        </ul>
+          <!-- Persona — select2 -->
+          <tr>
+            <td colspan="3" class="col-hdr">PERSONA (buscar)</td>
+            <td colspan="3" class="col-hdr">PUESTO DE TRABAJO (CIUO)</td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <!-- Select2 igual que tu form actual -->
+              <input type="hidden" name="persona" id="id_persona" value="{{ ev.persona_id|default_if_none:'' }}">
+              <select id="id_persona_select2" class="fi" style="width:100%">
+                {% if ev.persona %}
+                  <option value="{{ ev.persona.id }}" selected>{{ ev.persona.nombres_completos }}</option>
+                {% endif %}
+              </select>
+            </td>
+            <td colspan="3"><input class="fi" name="puesto_trabajo_ciu" value="{{ ev.puesto_trabajo_ciu|default_if_none:'' }}"></td>
+          </tr>
 
-        <div class="tab-content pt-3">
+          <!-- Apellidos / Nombres (solo lectura, se llenan al seleccionar persona) -->
+          <tr>
+            <td colspan="2" class="col-hdr">PRIMER APELLIDO</td>
+            <td colspan="2" class="col-hdr">SEGUNDO APELLIDO</td>
+            <td class="col-hdr">PRIMER NOMBRE</td>
+            <td class="col-hdr">SEGUNDO NOMBRE</td>
+          </tr>
+          <tr style="background:#f9f9f9">
+            <td colspan="2" id="disp_primerapellido" style="font-size:11px">{{ ev.persona.primerapellido|default_if_none:'' }}</td>
+            <td colspan="2" id="disp_segundoapellido" style="font-size:11px">{{ ev.persona.segundoapellido|default_if_none:'' }}</td>
+            <td id="disp_nombres"  style="font-size:11px">{{ ev.persona.nombres|default_if_none:'' }}</td>
+            <td id="disp_segundonombre" style="font-size:11px">{{ ev.persona.segundonombre|default_if_none:'' }}</td>
+          </tr>
 
-            <!-- TAB 1: GENERAL (usa tu form + partial bonito) -->
-            <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
-                <div class="row g-3">
-                    {% for field in form %}
-                        {% include "core/_field_bs5.html" with field=field col="col-12 col-lg-6" %}
-                    {% endfor %}
-                </div>
-            </div>
+          <!-- Grupo atención / Sexo / Fecha nac / Grupo sanguíneo / Lateralidad -->
+          <tr>
+            <td colspan="4" class="col-hdr">GRUPO DE ATENCIÓN PRIORITARIA</td>
+            <td colspan="2" class="col-hdr">SEXO</td>
+            <td colspan="3" class="col-hdr" style="width:18%">FECHA DE NACIMIENTO</td>
+            <td class="col-hdr" style="width:5%">Edad</td>
+            <td class="col-hdr" style="width:20%">GRUPO SANGUÍNEO</td>
+            <td class="col-hdr" style="width:14%">LATERALIDAD</td>
+          </tr>
+          <tr style="font-size:9px; text-align:center">
+            <td style="width:7%">Embarazada</td>
+            <td style="width:7%">Persona con Discapacidad</td>
+            <td style="width:7%">Enfermedad Catastrófica</td>
+            <td style="width:5%">Adulto Mayor</td>
+            <td style="width:6%">Hombre</td>
+            <td style="width:6%">Mujer</td>
+            <td style="width:6%" id="disp_anio">{{ ev.persona.fecha_nacimiento|date:"Y"|default_if_none:'' }}<br><span style="font-size:8px">año</span></td>
+            <td style="width:6%" id="disp_mes">{{ ev.persona.fecha_nacimiento|date:"m"|default_if_none:'' }}<br><span style="font-size:8px">mes</span></td>
+            <td style="width:6%" id="disp_dia">{{ ev.persona.fecha_nacimiento|date:"d"|default_if_none:'' }}<br><span style="font-size:8px">día</span></td>
+            <td style="width:5%" id="disp_edad">{{ ev.persona.edad|default_if_none:'' }}</td>
+            <td id="disp_gsanguineo" style="width:20%">{{ ev.persona.grupo_sanguineo|default_if_none:'' }}</td>
+            <td id="disp_lateralidad" style="width:14%">{{ ev.persona.lateralidad|default_if_none:'' }}</td>
+          </tr>
+          <tr style="text-align:center">
+            <td>
+              <select class="fi" name="gap_embarazada">
+                <option value="">-</option>
+                <option value="SI" {% if ev.grupo_atencion_prioritaria_embarazada == 'SI' %}selected{% endif %}>SI</option>
+                <option value="NO" {% if ev.grupo_atencion_prioritaria_embarazada == 'NO' %}selected{% endif %}>NO</option>
+              </select>
+            </td>
+            <td>
+              <select class="fi" name="gap_discapacidad">
+                <option value="">-</option>
+                <option value="SI" {% if ev.grupo_atencion_prioritaria_discapacidad == 'SI' %}selected{% endif %}>SI</option>
+                <option value="NO" {% if ev.grupo_atencion_prioritaria_discapacidad == 'NO' %}selected{% endif %}>NO</option>
+              </select>
+            </td>
+            <td>
+              <select class="fi" name="gap_catastrofica">
+                <option value="">-</option>
+                <option value="SI" {% if ev.grupo_atencion_prioritaria_catastrofica == 'SI' %}selected{% endif %}>SI</option>
+                <option value="NO" {% if ev.grupo_atencion_prioritaria_catastrofica == 'NO' %}selected{% endif %}>NO</option>
+              </select>
+            </td>
+            <td>
+              <select class="fi" name="gap_adulto_mayor">
+                <option value="">-</option>
+                <option value="SI" {% if ev.grupo_atencion_prioritaria_adulto_mayor == 'SI' %}selected{% endif %}>SI</option>
+                <option value="NO" {% if ev.grupo_atencion_prioritaria_adulto_mayor == 'NO' %}selected{% endif %}>NO</option>
+              </select>
+            </td>
+            <!-- Sexo (solo lectura desde persona) -->
+            <td id="disp_sexo_h">{% if ev.persona.sexo == 'M' %}☑{% else %}☐{% endif %}</td>
+            <td id="disp_sexo_m">{% if ev.persona.sexo == 'F' %}☑{% else %}☐{% endif %}</td>
+            <td colspan="3"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+      </div>
 
-            <!-- TAB 2: ANTECEDENTES LABORALES -->
-            <div class="tab-pane fade" id="tab-antecedentes" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <h6 class="mb-0">Antecedentes laborales</h6>
-                        <small class="text-muted">Agrega los registros necesarios</small>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowAntecedente()">
-                        <i class="fa fa-plus"></i> Agregar
-                    </button>
-                </div>
+      <!-- B. MOTIVO DE CONSULTA -->
+      <div class="section">
+        <div class="sec-title">B. MOTIVO DE CONSULTA</div>
+        <table>
+          <tr>
+            <td style="width:35%">
+              <span class="row-lbl">Puesto de Trabajo CIUO</span>
+              <input class="fi" name="puesto_trabajo_ciu_b" value="{{ ev.puesto_trabajo_ciu|default_if_none:'' }}">
+            </td>
+            <td style="width:33%">
+              <span class="row-lbl">Fecha de Atención aaaa/mm/dd</span>
+              <input type="date" class="fi" name="fecha_atencion" value="{{ ev.fecha_atencion|date:'Y-m-d'|default_if_none:'' }}">
+            </td>
+            <td style="width:32%"></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="row-lbl">Fecha de Ingreso al trabajo aaaa/mm/dd</span>
+              <input type="date" class="fi" name="fecha_ingreso_trabajo" value="{{ ev.fecha_ingreso_trabajo|date:'Y-m-d'|default_if_none:'' }}">
+            </td>
+            <td>
+              <span class="row-lbl">Fecha de Reintegro aaaa/mm/dd</span>
+              <input type="date" class="fi" name="fecha_reintegro" value="{{ ev.fecha_reintegro|date:'Y-m-d'|default_if_none:'' }}">
+            </td>
+            <td>
+              <span class="row-lbl">Fecha del Último día laboral/salida aaaa/mm/dd</span>
+              <input type="date" class="fi" name="fecha_ultimo_dia_laboral" value="{{ ev.fecha_ultimo_dia_laboral|date:'Y-m-d'|default_if_none:'' }}">
+            </td>
+          </tr>
+        </table>
+        <table>
+          <tr>
+            <td style="width:15%" class="sub-title bold">TIPO DE EVALUACIÓN</td>
+            <td style="width:21%" class="col-hdr">INGRESO</td>
+            <td style="width:21%" class="col-hdr">PERIÓDICO</td>
+            <td style="width:21%" class="col-hdr">REINTEGRO</td>
+            <td style="width:22%" class="col-hdr">RETIRO</td>
+          </tr>
+          <tr style="text-align:center; height:22px">
+            <td></td>
+            <td><div class="cb-group"><input type="radio" name="tipo_evaluacion" value="INGRESO" {% if ev.tipo_evaluacion == 'INGRESO' %}checked{% endif %}></div></td>
+            <td><div class="cb-group"><input type="radio" name="tipo_evaluacion" value="PERIODICO" {% if ev.tipo_evaluacion == 'PERIODICO' %}checked{% endif %}></div></td>
+            <td><div class="cb-group"><input type="radio" name="tipo_evaluacion" value="REINTEGRO" {% if ev.tipo_evaluacion == 'REINTEGRO' %}checked{% endif %}></div></td>
+            <td><div class="cb-group"><input type="radio" name="tipo_evaluacion" value="RETIRO" {% if ev.tipo_evaluacion == 'RETIRO' %}checked{% endif %}></div></td>
+          </tr>
+          <tr><td colspan="5" style="font-size:9px; color:#555">Observación</td></tr>
+          <tr><td colspan="5"><textarea class="fi" name="motivo_consulta" rows="2">{{ ev.motivo_consulta|default_if_none:'' }}</textarea></td></tr>
+        </table>
+      </div>
 
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle" id="tblAntecedentes">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Empresa</th>
-                            <th>Puesto</th>
-                            <th>Actividad</th>
-                            <th>Tiempo</th>
-                            <th>Riesgos</th>
-                            <th>EPP</th>
-                            <th>Observaciones</th>
-                            <th style="width:60px;"></th>
-                        </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+      <!-- C. ANTECEDENTES PERSONALES -->
+      <div class="section">
+        <div class="sec-title">C. ANTECEDENTES PERSONALES</div>
 
-            <!-- TAB 3: INCIDENTES -->
-            <div class="tab-pane fade" id="tab-incidentes" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <h6 class="mb-0">Incidentes / accidentes / enfermedades ocupacionales</h6>
-                        <small class="text-muted">Agrega los registros necesarios</small>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowIncidente()">
-                        <i class="fa fa-plus"></i> Agregar
-                    </button>
-                </div>
+        <div class="sub-title">ANTECEDENTES CLÍNICOS Y QUIRÚRGICOS</div>
+        <table><tr><td><span class="row-lbl">Descripción</span>
+          <textarea class="fi" name="antecedentes_clinico_quirurgicos" rows="2">{{ ev.antecedentes_clinico_quirurgicos|default_if_none:'' }}</textarea>
+        </td></tr></table>
 
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle" id="tblIncidentes">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Puesto</th>
-                            <th>Actividad</th>
-                            <th>Fecha</th>
-                            <th>Descripción</th>
-                            <th>Calificado</th>
-                            <th>Reubicación</th>
-                            <th>Obs.</th>
-                            <th style="width:60px;"></th>
-                        </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="sub-title">ANTECEDENTES FAMILIARES</div>
+        <table><tr><td><span class="row-lbl">Descripción</span>
+          <textarea class="fi" name="antecedentes_familiares" rows="2">{{ ev.antecedentes_familiares|default_if_none:'' }}</textarea>
+        </td></tr></table>
 
-            <!-- TAB 4: ACTIVIDADES EXTRA -->
-            <div class="tab-pane fade" id="tab-actividades" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <h6 class="mb-0">Actividades extralaborales</h6>
-                        <small class="text-muted">Agrega los registros necesarios</small>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowActividad()">
-                        <i class="fa fa-plus"></i> Agregar
-                    </button>
-                </div>
+        <!-- Transfusiones / hormonal -->
+        <table>
+          <tr style="font-size:9px">
+            <td style="width:38%">Condición especial para las atenciones de urgencia, emergencia, y tratamiento médico (referido por el paciente).</td>
+            <td style="width:5%" class="col-hdr">SI</td>
+            <td style="width:5%" class="col-hdr">NO</td>
+            <td style="width:30%">Se encuentra bajo algún tratamiento hormonal</td>
+            <td style="width:5%" class="col-hdr">SI</td>
+            <td style="width:10%">¿Cuál? Describir</td>
+            <td style="width:5%" class="col-hdr">NO</td>
+          </tr>
+          <tr style="text-align:center">
+            <td style="text-align:left; font-size:10px">En caso de requerir transfusiones autoriza:</td>
+            <td><div class="cb-group"><input type="radio" name="requiere_transfusiones" value="true"  {% if ev.requiere_transfusiones %}checked{% endif %}></div></td>
+            <td><div class="cb-group"><input type="radio" name="requiere_transfusiones" value="false" {% if ev.requiere_transfusiones == False %}checked{% endif %}></div></td>
+            <td></td>
+            <td><div class="cb-group"><input type="radio" name="tratamiento_hormonal" value="true"  {% if ev.tratamiento_hormonal %}checked{% endif %}></div></td>
+            <td><input class="fi" name="tratamiento_hormonal_cual" value="{{ ev.tratamiento_hormonal_cual|default_if_none:'' }}" placeholder="Cuál..."></td>
+            <td><div class="cb-group"><input type="radio" name="tratamiento_hormonal" value="false" {% if ev.tratamiento_hormonal == False %}checked{% endif %}></div></td>
+          </tr>
+        </table>
 
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle" id="tblActividades">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Tipo actividad</th>
-                            <th>Frecuencia</th>
-                            <th>Observaciones</th>
-                            <th style="width:60px;"></th>
-                        </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+        <!-- Gineco obstétrico -->
+        <div class="sub-title">ANTECEDENTES GINECO OBSTÉTRICOS</div>
+        <table style="font-size:10px">
+          <tr>
+            <td style="width:20%" class="col-hdr">FECHA DE LA ÚLTIMA MENSTRUACIÓN</td>
+            <td style="width:10%" class="col-hdr">aaaa/mm/dd</td>
+            <td style="width:8%"  class="col-hdr">GESTAS</td>
+            <td style="width:8%"  class="col-hdr">PARTOS</td>
+            <td style="width:9%"  class="col-hdr">CESÁREAS</td>
+            <td style="width:9%"  class="col-hdr">ABORTOS</td>
+            <td style="width:18%" class="col-hdr" colspan="4">MÉTODO DE PLANIFICACION FAMILIAR</td>
+          </tr>
+          <tr style="text-align:center">
+            <td colspan="2"><input type="date" class="fi" name="fecha_ultima_menstruacion" value="{{ ev.fecha_ultima_menstruacion|date:'Y-m-d'|default_if_none:'' }}"></td>
+            <td><input class="fi" type="number" name="gestas"   value="{{ ev.gestas|default_if_none:'' }}" min="0"></td>
+            <td><input class="fi" type="number" name="partos"   value="{{ ev.partos|default_if_none:'' }}" min="0"></td>
+            <td><input class="fi" type="number" name="cesareas" value="{{ ev.cesareas|default_if_none:'' }}" min="0"></td>
+            <td><input class="fi" type="number" name="abortos"  value="{{ ev.abortos|default_if_none:'' }}" min="0"></td>
+            <td style="width:5%"><div class="cb-group" style="flex-direction:column">
+              <input type="radio" name="planificacion_familiar" value="SI" {% if ev.planificacion_familiar == 'SI' %}checked{% endif %}>
+              <span style="font-size:8px">SI</span>
+            </div></td>
+            <td style="width:13%"><input class="fi" name="planificacion_familiar_cual" value="{{ ev.planificacion_familiar_cual|default_if_none:'' }}" placeholder="¿Cuál?"></td>
+            <td style="width:5%"><div class="cb-group" style="flex-direction:column">
+              <input type="radio" name="planificacion_familiar" value="NO" {% if ev.planificacion_familiar == 'NO' %}checked{% endif %}>
+              <span style="font-size:8px">no</span>
+            </div></td>
+            <td style="width:8%"><div class="cb-group" style="flex-direction:column">
+              <input type="radio" name="planificacion_familiar" value="NR" {% if ev.planificacion_familiar == 'NR' %}checked{% endif %}>
+              <span style="font-size:8px">no responde</span>
+            </div></td>
+          </tr>
+        </table>
+        <table style="font-size:10px">
+          <tr>
+            <td style="width:40%" class="col-hdr">EXÁMENES REALIZADOS ¿CUÁL?</td>
+            <td style="width:20%" class="col-hdr">TIEMPO (años)</td>
+            <td class="italic" style="width:40%">Registrar resultado únicamente si interfiere con la actividad laboral y previa autorización del titular</td>
+          </tr>
+          <tr style="height:22px"><td><input class="fi" name="examenes_gineco_cual" value="{{ ev.examenes_gineco_cual|default_if_none:'' }}"></td><td><input class="fi" name="examenes_gineco_tiempo" value="{{ ev.examenes_gineco_tiempo|default_if_none:'' }}"></td><td></td></tr>
+        </table>
 
-            <!-- TAB 5: EXÁMENES -->
-            <div class="tab-pane fade" id="tab-examenes" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <h6 class="mb-0">Exámenes generales / específicos</h6>
-                        <small class="text-muted">Agrega los registros necesarios</small>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowExamen()">
-                        <i class="fa fa-plus"></i> Agregar
-                    </button>
-                </div>
+        <!-- Reproductivos masculinos -->
+        <div class="sub-title">ANTECEDENTES REPRODUCTIVOS MASCULINOS</div>
+        <table style="font-size:10px">
+          <tr>
+            <td style="width:25%" class="col-hdr">EXÁMENES REALIZADOS ¿CUÁL?</td>
+            <td style="width:12%" class="col-hdr">TIEMPO (años)</td>
+            <td style="width:33%" class="italic">Registrar resultado únicamente si interfiere con la actividad laboral y previa autorización del titular</td>
+            <td style="width:5%"  class="col-hdr">SI</td>
+            <td style="width:10%" class="col-hdr">¿CUÁL?</td>
+            <td style="width:5%"  class="col-hdr">NO</td>
+            <td style="width:10%" class="col-hdr">NO RESPONDE</td>
+          </tr>
+          <tr style="height:22px; text-align:center">
+            <td><input class="fi" name="examenes_masculino_cual"></td>
+            <td><input class="fi" name="examenes_masculino_tiempo"></td>
+            <td></td>
+            <td><div class="cb-group"><input type="radio" name="plan_fam_masculino" value="SI" {% if ev.planificacion_familiar == 'SI' %}checked{% endif %}></div></td>
+            <td><input class="fi" name="plan_fam_masculino_cual" value="{{ ev.planificacion_familiar_cual|default_if_none:'' }}"></td>
+            <td><div class="cb-group"><input type="radio" name="plan_fam_masculino" value="NO" {% if ev.planificacion_familiar == 'NO' %}checked{% endif %}></div></td>
+            <td><div class="cb-group"><input type="radio" name="plan_fam_masculino" value="NR" {% if ev.planificacion_familiar == 'NR' %}checked{% endif %}></div></td>
+          </tr>
+        </table>
 
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle" id="tblExamenes">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Nombre examen</th>
-                            <th>Fecha</th>
-                            <th>Resultados</th>
-                            <th>Observaciones</th>
-                            <th style="width:60px;"></th>
-                        </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+        <!-- Consumo / Estilo de vida / Condición preexistente -->
+        <table style="font-size:10px">
+          <tr>
+            <td colspan="5" class="sub-title">CONSUMO DE SUSTANCIAS</td>
+            <td colspan="3" class="sub-title">ESTILO DE VIDA</td>
+            <td colspan="3" class="sub-title">CONDICIÓN PREEXISTENTE</td>
+          </tr>
+          <tr>
+            <td style="width:9%"></td>
+            <td style="width:7%"  class="col-hdr">TIEMPO DE CONSUMO</td>
+            <td style="width:7%"  class="col-hdr">EX CONSUMIDOR</td>
+            <td style="width:7%"  class="col-hdr">TIEMPO ABSTINENCIA (meses)</td>
+            <td style="width:7%"  class="col-hdr">NO CONSUME</td>
+            <td style="width:10%" class="col-hdr">ACTIVIDAD FÍSICA</td>
+            <td style="width:10%" class="col-hdr">¿CUÁL?</td>
+            <td style="width:8%"  class="col-hdr">TIEMPO</td>
+            <td style="width:12%" class="col-hdr">MEDICACIÓN HABITUAL</td>
+            <td style="width:12%" class="col-hdr">¿CUÁL?</td>
+            <td style="width:11%" class="col-hdr">CANTIDAD</td>
+          </tr>
+          <tr>
+            <td class="bold">TABACO</td>
+            <td><input class="fi" name="tabaco_detalle" value="{{ ev.tabaco_detalle|default_if_none:'' }}"></td>
+            <td><input class="fi" name="tabaco_ex_consumidor" value="{{ ev.tabaco_ex_consumidor|default_if_none:'' }}"></td>
+            <td><input class="fi" name="tabaco_tiempo_abstinencia" value="{{ ev.tabaco_tiempo_abstinencia|default_if_none:'' }}"></td>
+            <td><input class="fi" name="tabaco_no_consume" value="{{ ev.tabaco_no_consume|default_if_none:'' }}"></td>
+            <td rowspan="3"><input class="fi" name="actividad_fisica" value="{{ ev.actividad_fisica|default_if_none:'' }}"></td>
+            <td rowspan="3"><input class="fi" name="actividad_fisica_cual" value="{{ ev.actividad_fisica|default_if_none:'' }}"></td>
+            <td rowspan="3"><input class="fi" name="actividad_fisica_tiempo" value="{{ ev.actividad_fisica_tiempo|default_if_none:'' }}"></td>
+            <td rowspan="3"><input class="fi" name="medicacion_habitual" value="{{ ev.medicacion_habitual|default_if_none:'' }}"></td>
+            <td rowspan="3"><input class="fi" name="condicion_preexistente" value="{{ ev.condicion_preexistente|default_if_none:'' }}"></td>
+            <td rowspan="3"><input class="fi" name="condicion_preexistente_cantidad" value="{{ ev.condicion_preexistente_cantidad|default_if_none:'' }}"></td>
+          </tr>
+          <tr>
+            <td class="bold">ALCOHOL</td>
+            <td><input class="fi" name="alcohol_detalle" value="{{ ev.alcohol_detalle|default_if_none:'' }}"></td>
+            <td><input class="fi" name="alcohol_ex_consumidor" value="{{ ev.alcohol_ex_consumidor|default_if_none:'' }}"></td>
+            <td><input class="fi" name="alcohol_tiempo_abstinencia" value="{{ ev.alcohol_tiempo_abstinencia|default_if_none:'' }}"></td>
+            <td><input class="fi" name="alcohol_no_consume" value="{{ ev.alcohol_no_consume|default_if_none:'' }}"></td>
+          </tr>
+          <tr>
+            <td class="bold small">OTRAS: ¿Cuál?</td>
+            <td><input class="fi" name="drogas_detalle" value="{{ ev.drogas_detalle|default_if_none:'' }}"></td>
+            <td><input class="fi" name="drogas_ex_consumidor" value="{{ ev.drogas_ex_consumidor|default_if_none:'' }}"></td>
+            <td><input class="fi" name="drogas_tiempo_abstinencia" value="{{ ev.drogas_tiempo_abstinencia|default_if_none:'' }}"></td>
+            <td><input class="fi" name="drogas_no_consume" value="{{ ev.drogas_no_consume|default_if_none:'' }}"></td>
+          </tr>
+          <tr><td colspan="11" style="font-size:9px">Observación:
+            <input class="fi" name="consumo_observacion" value="{{ ev.consumo_observacion|default_if_none:'' }}">
+          </td></tr>
+        </table>
+      </div>
 
-            <!-- TAB 6: DIAGNÓSTICOS -->
-            <div class="tab-pane fade" id="tab-diagnosticos" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <h6 class="mb-0">Diagnósticos</h6>
-                        <small class="text-muted">CIE10 + presuntivo/definitivo</small>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="addRowDiagnostico()">
-                        <i class="fa fa-plus"></i> Agregar
-                    </button>
-                </div>
+      <!-- D. ENFERMEDAD ACTUAL -->
+      <div class="section">
+        <div class="sec-title">D. ENFERMEDAD O PROBLEMA ACTUAL</div>
+        <table><tr><td><span class="row-lbl">Descripción</span>
+          <textarea class="fi" name="enfermedad_problema_actual" rows="2">{{ ev.enfermedad_problema_actual|default_if_none:'' }}</textarea>
+        </td></tr></table>
+      </div>
 
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle" id="tblDiagnosticos">
-                        <thead class="table-light">
-                        <tr>
-                            <th>CIE10</th>
-                            <th>Descripción</th>
-                            <th>Presuntivo</th>
-                            <th>Definitivo</th>
-                            <th style="width:60px;"></th>
-                        </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+      <!-- E. CONSTANTES VITALES -->
+      <div class="section">
+        <div class="sec-title">E. CONSTANTES VITALES Y ANTROPOMETRÍA</div>
+        <table>
+          <tr>
+            <td class="col-hdr">TEMPERATURA (°C)</td>
+            <td class="col-hdr">PRESIÓN ARTERIAL (mmHg)</td>
+            <td class="col-hdr">FREC. CARDIACA (Lat/min)</td>
+            <td class="col-hdr">FREC. RESPIRATORIA (fr/min)</td>
+            <td class="col-hdr">SATURACIÓN O2 (%)</td>
+            <td class="col-hdr">PESO (Kg)</td>
+            <td class="col-hdr">TALLA (cm)</td>
+            <td class="col-hdr">IMC (kg/m2)</td>
+            <td class="col-hdr">PERÍMETRO ABD. (cm)</td>
+          </tr>
+          <tr style="text-align:center">
+            <td><input class="fi" type="number" step="0.01" name="temperatura_c"             value="{{ ev.temperatura_c|default_if_none:'' }}"></td>
+            <td><input class="fi" name="presion_arterial"                                     value="{{ ev.presion_arterial|default_if_none:'' }}"></td>
+            <td><input class="fi" type="number" name="frecuencia_cardiaca"                    value="{{ ev.frecuencia_cardiaca|default_if_none:'' }}"></td>
+            <td><input class="fi" type="number" name="frecuencia_respiratoria"                value="{{ ev.frecuencia_respiratoria|default_if_none:'' }}"></td>
+            <td><input class="fi" type="number" name="saturacion_oxigeno"                     value="{{ ev.saturacion_oxigeno|default_if_none:'' }}"></td>
+            <td><input class="fi" type="number" step="0.01" name="peso_kg"                   value="{{ ev.peso_kg|default_if_none:'' }}" id="f_peso"></td>
+            <td><input class="fi" type="number" step="0.01" name="talla_cm"                  value="{{ ev.talla_cm|default_if_none:'' }}" id="f_talla"></td>
+            <td><input class="fi" type="number" step="0.01" name="imc" id="f_imc"            value="{{ ev.imc|default_if_none:'' }}" readonly style="background:#eee"></td>
+            <td><input class="fi" type="number" step="0.01" name="perimetro_abdominal_cm"    value="{{ ev.perimetro_abdominal_cm|default_if_none:'' }}"></td>
+          </tr>
+        </table>
+      </div>
 
-            <!-- TAB 7: CERTIFICADO -->
-            <div class="tab-pane fade" id="tab-certificado" role="tabpanel">
-                <div class="row g-3">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label"><b>Fecha emisión</b></label>
-                        <input type="date" class="form-control" id="c_fecha_emision">
-                    </div>
+      <!-- F. EXAMEN FÍSICO REGIONAL -->
+      <div class="section">
+        <div class="sec-title">F. EXAMEN FÍSICO REGIONAL</div>
+        <div class="sub-title">REGIONES — ingresar hallazgos por región (dejar vacío si normal)</div>
+        <table style="font-size:10px">
+          <tr>
+            <!-- 1. Piel -->
+            <td rowspan="2" class="rotated" style="width:3%">1. Piel</td>
+            <td style="width:11%; vertical-align:top">
+              <div class="row-lbl">a. Cicatrices / b. Piel y Faneras</div>
+              <textarea class="fi" name="examen_piel" rows="2">{{ ev.examen_piel|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 2. Ojos -->
+            <td rowspan="2" class="rotated" style="width:3%">2. Ojos</td>
+            <td style="width:10%; vertical-align:top">
+              <div class="row-lbl">a.Párpados b.Conjuntivas c.Pupilas d.Córnea e.Motilidad</div>
+              <textarea class="fi" name="examen_ojos" rows="2">{{ ev.examen_ojos|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 3. Oído -->
+            <td rowspan="2" class="rotated" style="width:3%">3. Oído</td>
+            <td style="width:10%; vertical-align:top">
+              <div class="row-lbl">a.C.auditivo ext. b.Pabellón c.Tímpanos</div>
+              <textarea class="fi" name="examen_oidos" rows="2">{{ ev.examen_oidos|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 4. Orofaringe -->
+            <td rowspan="2" class="rotated" style="width:3%">4. Orofaringe</td>
+            <td style="width:9%; vertical-align:top">
+              <div class="row-lbl">a.Labios b.Lengua c.Faringe d.Amígdalas e.Dentadura</div>
+              <textarea class="fi" name="examen_boca" rows="2">{{ ev.examen_boca|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 5. Nariz -->
+            <td rowspan="2" class="rotated" style="width:3%">5. Nariz</td>
+            <td style="width:9%; vertical-align:top">
+              <div class="row-lbl">a.Tabique b.Cornetes c.Mucosas d.Senos paranasales</div>
+              <textarea class="fi" name="examen_nariz" rows="2">{{ ev.examen_nariz|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 6. Cuello -->
+            <td rowspan="2" class="rotated" style="width:3%">6. Cuello</td>
+            <td style="width:8%; vertical-align:top">
+              <div class="row-lbl">a.Tiroides/masas b.Movilidad</div>
+              <textarea class="fi" name="examen_cuello" rows="2">{{ ev.examen_cuello|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 7. Tórax -->
+            <td rowspan="2" class="rotated" style="width:3%">7. Tórax</td>
+            <td style="width:8%; vertical-align:top">
+              <div class="row-lbl">a.Mamas</div>
+              <textarea class="fi" name="examen_torax" rows="2">{{ ev.examen_torax|default_if_none:'' }}</textarea>
+            </td>
+          </tr>
+          <tr style="height:6px">
+            <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
 
-                    <div class="col-12 col-md-4">
-                        <label class="form-label"><b>Aptitud médica</b></label>
-                        <select class="form-select" id="c_aptitud">
-                            <option value="">---</option>
-                            <option value="APTO">Apto</option>
-                            <option value="APTO_OBSERVACION">Apto en observación</option>
-                            <option value="APTO_LIMITACIONES">Apto con limitaciones</option>
-                            <option value="NO_APTO">No apto</option>
-                        </select>
-                    </div>
+          <tr>
+            <!-- 8. Tórax int -->
+            <td rowspan="2" class="rotated" style="width:3%">8. Tórax</td>
+            <td style="vertical-align:top">
+              <div class="row-lbl">a.Pulmones b.Corazón c.Parrilla costal</div>
+              <textarea class="fi" name="examen_pulmones" rows="2">{{ ev.examen_pulmones|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 9. Abdomen -->
+            <td rowspan="2" class="rotated" style="width:3%">9. Abdomen</td>
+            <td style="vertical-align:top">
+              <div class="row-lbl">a.Vísceras b.Pared abdominal</div>
+              <textarea class="fi" name="examen_abdomen" rows="2">{{ ev.examen_abdomen|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 10. Columna -->
+            <td rowspan="2" class="rotated" style="width:3%">10. Columna</td>
+            <td style="vertical-align:top">
+              <div class="row-lbl">a.Flexibilidad b.Desviación c.Dolor</div>
+              <textarea class="fi" name="examen_columna" rows="2">{{ ev.examen_columna|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 11. Pelvis -->
+            <td rowspan="2" class="rotated" style="width:3%">11. Pelvis</td>
+            <td style="vertical-align:top">
+              <div class="row-lbl">a.Pelvis b.Genitales</div>
+              <textarea class="fi" name="examen_pelvis_genitales" rows="2">{{ ev.examen_pelvis_genitales|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 12. Extremidades -->
+            <td rowspan="2" class="rotated" style="width:3%">12. Extrem.</td>
+            <td style="vertical-align:top">
+              <div class="row-lbl">a.Vascular b.Miembros sup. c.Miembros inf.</div>
+              <textarea class="fi" name="examen_extremidades_superiores" rows="2">{{ ev.examen_extremidades_superiores|default_if_none:'' }}</textarea>
+            </td>
+            <!-- 13. Neurológico -->
+            <td rowspan="2" class="rotated" style="width:3%">13. Neurol.</td>
+            <td style="vertical-align:top">
+              <div class="row-lbl">a.Fuerza b.Sensibilidad c.Marcha d.Reflejos</div>
+              <textarea class="fi" name="examen_neurologico" rows="2">{{ ev.examen_neurologico|default_if_none:'' }}</textarea>
+            </td>
+          </tr>
+          <tr style="height:6px"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </table>
 
-                    <div class="col-12 col-md-12">
-                        <label class="form-label"><b>Detalle / Observaciones</b></label>
-                        <textarea class="form-control" rows="2" id="c_detalle"></textarea>
-                    </div>
+        <table style="margin-top:3px; font-size:10px">
+          <tr>
+            <td style="background:var(--yellow); font-size:9px; font-style:italic">
+              SI EXISTE EVIDENCIA DE PATOLOGÍA MARCAR CON "X" Y DESCRIBIR EN LA SIGUIENTE SECCIÓN COLOCANDO EL NUMERAL
+            </td>
+          </tr>
+          <tr><td>
+            <span class="row-lbl">Observación:</span>
+            <textarea class="fi" name="examen_observacion" rows="2">{{ ev.examen_observacion|default_if_none:'' }}</textarea>
+          </td></tr>
+        </table>
+      </div>
 
-                    <div class="col-12 col-md-12">
-                        <label class="form-label"><b>Recomendaciones</b></label>
-                        <textarea class="form-control" rows="2" id="c_recomendaciones"></textarea>
-                    </div>
+    </div><!-- /tab-p1 -->
 
-                    <div class="col-12 col-md-12">
-                        <label class="form-label"><b>Firma / huella trabajador</b></label>
-                        <textarea class="form-control" rows="2" id="c_firma_huella"></textarea>
-                    </div>
-                </div>
-            </div>
 
+    <!-- ══════════════════════════════════════════════
+         PESTAÑA 2  — Página 2 · Factores de riesgo (G)
+    ══════════════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-p2">
+      <div class="sec-title center">G. FACTORES DE RIESGO DEL TRABAJO ACTUAL</div>
+      <p style="font-size:9px; color:#555; margin:4px 0">Marcar con ✓ en cada celda del puesto que aplique el factor de riesgo.</p>
+      <table style="font-size:9px; margin-top:2px">
+        <tr>
+          <td colspan="3" class="col-hdr bold" style="width:43%">PUESTO DE TRABAJO / ACTIVIDAD</td>
+          <td class="col-hdr center" style="width:8%">1</td>
+          <td class="col-hdr center" style="width:8%">2</td>
+          <td class="col-hdr center" style="width:8%">3</td>
+          <td class="col-hdr center" style="width:8%">4</td>
+          <td class="col-hdr center" style="width:8%">5</td>
+          <td class="col-hdr center" style="width:8%">6</td>
+          <td class="col-hdr center" style="width:8%">7</td>
+        </tr>
+
+        {% for grupo in factores_riesgo_grupos %}
+        {% for item in grupo.items %}
+        <tr style="height:14px">
+          {% if forloop.first %}
+          <td rowspan="{{ grupo.count }}" class="rotated bold" style="width:4%">{{ grupo.nombre }}</td>
+          {% if grupo.sub %}
+          <td rowspan="{{ grupo.sub_count }}" class="rotated" style="width:4%; font-size:8px">{{ grupo.sub }}</td>
+          {% else %}
+          <td rowspan="{{ grupo.count }}" style="border:none; width:4%"></td>
+          {% endif %}
+          {% endif %}
+          {% if grupo.sub and forloop.counter == grupo.sub_count|add:1 %}
+          <td rowspan="{{ grupo.resto }}" class="rotated" style="width:4%; font-size:8px">{{ grupo.sub2 }}</td>
+          {% endif %}
+          <td style="font-size:9px">{{ item }}</td>
+          <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_1" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_2" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_3" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_4" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_5" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_6" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_7" style="width:12px;height:12px"></td>
+        </tr>
+        {% endfor %}
+        {% empty %}
+        <!-- Tabla estática si no hay contexto de grupos -->
+        {% for label in lista %}
+        <tr style="height:14px">
+          {% if forloop.first %}<td rowspan="10" class="rotated bold" style="width:4%">FÍSICO</td><td rowspan="10" style="border:none;width:4%"></td>{% endif %}
+          <td>{{ label }}</td>
+          <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_1" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_2" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_3" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_4" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_5" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_6" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_7" style="width:12px;height:12px"></td>
+        </tr>
+        {% endfor %}
+
+        <tr style="height:14px">
+          <td class="bold" colspan="2">LOCATIVOS</td>
+          <td>Falta de señalización, aseo, desorden</td>
+          <td class="center"><input type="checkbox" name="loc_1_1" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="loc_1_2" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="loc_1_3" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="loc_1_4" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="loc_1_5" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="loc_1_6" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="loc_1_7" style="width:12px;height:12px"></td>
+        </tr>
+
+        {% for label in listaseguridad %}
+        <tr style="height:14px">
+          {% if forloop.first %}<td rowspan="16" class="rotated bold" style="width:4%">DE SEGURIDAD</td><td rowspan="12" class="rotated" style="width:4%;font-size:8px">MECÁNICOS</td>{% endif %}
+          <td>{{ label }}</td>
+          <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_1" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_2" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_3" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_4" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_5" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_6" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_7" style="width:12px;height:12px"></td>
+        </tr>
+        {% endfor %}
+        <tr style="height:14px"><td class="bold col-hdr">ELÉCTRICOS</td><td>Contacto eléctrico</td><td class="center"><input type="checkbox" style="width:12px;height:12px"></td><td class="center"><input type="checkbox" style="width:12px;height:12px"></td><td class="center"><input type="checkbox" style="width:12px;height:12px"></td><td class="center"><input type="checkbox" style="width:12px;height:12px"></td><td class="center"><input type="checkbox" style="width:12px;height:12px"></td><td class="center"><input type="checkbox" style="width:12px;height:12px"></td><td class="center"><input type="checkbox" style="width:12px;height:12px"></td></tr>
+        <tr style="height:14px"><td class="bold col-hdr">OTROS</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+        {% for label in listaquimicos %}
+        <tr style="height:14px">
+          {% if forloop.first %}<td rowspan="9" class="rotated bold" colspan="2" style="width:8%">QUÍMICO</td>{% endif %}
+          <td>{{ label }}</td>
+          <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_1" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_2" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_3" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_4" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_5" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_6" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_7" style="width:12px;height:12px"></td>
+        </tr>
+        {% endfor %}
+
+        {% for label in listabiologicos %}
+        <tr style="height:14px">
+          {% if forloop.first %}<td rowspan="7" class="rotated bold" colspan="2" style="width:8%">BIOLÓGICO</td>{% endif %}
+          <td>{{ label }}</td>
+          <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_1" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_2" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_3" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_4" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_5" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_6" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_7" style="width:12px;height:12px"></td>
+        </tr>
+        {% endfor %}
+
+        {% for label in listaergonomicos %}
+        <tr style="height:14px">
+          {% if forloop.first %}<td rowspan="6" class="rotated bold" colspan="2" style="width:8%">ERGONÓMICO</td>{% endif %}
+          <td>{{ label }}</td>
+          <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_1" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_2" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_3" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_4" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_5" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_6" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_7" style="width:12px;height:12px"></td>
+        </tr>
+        {% endfor %}
+
+        {% for label in listapsicosociales %}
+        <tr style="height:14px">
+          {% if forloop.first %}<td rowspan="14" class="rotated bold" colspan="2" style="width:8%">PSICOSOCIAL</td>{% endif %}
+          <td>{{ label }}</td>
+          <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_1" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_2" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_3" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_4" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_5" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_6" style="width:12px;height:12px"></td>
+          <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_7" style="width:12px;height:12px"></td>
+        </tr>
+        {% endfor %}
+
+        <tr style="height:18px">
+          <td colspan="3" class="col-hdr bold">MEDIDAS PREVENTIVAS</td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        {% endfor %} {# cierra el for vacío de factores_riesgo_grupos #}
+      </table>
+    </div><!-- /tab-p2 -->
+
+
+    <!-- ══════════════════════════════════════════════
+         PESTAÑA 3  — Página 3 del PDF (H..P)
+    ══════════════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-p3">
+
+      <!-- H. ANTECEDENTES LABORALES (tabla dinámica) -->
+      <div class="section">
+        <div class="sec-title">H. ACTIVIDAD LABORAL / INCIDENTES / ACCIDENTES / ENFERMEDADES OCUPACIONALES</div>
+        <div class="sub-title">ANTECEDENTES DE EMPLEOS ANTERIORES Y/O TRABAJO ACTUAL</div>
+        <div class="dyn-toolbar">
+          <span>Empleos anteriores / trabajo actual</span>
+          <button type="button" class="btn-sm" onclick="addRowAntecedente()">+ Agregar</button>
         </div>
-    </div>
+        <div style="overflow-x:auto">
+          <table class="dyn-table" id="tblAntecedentes" style="min-width:700px; font-size:9px">
+            <thead><tr>
+              <th style="width:14%">Centro de trabajo</th>
+              <th style="width:18%">Actividades que desempeñaba</th>
+              <th style="width:6%">Anterior</th>
+              <th style="width:6%">Actual</th>
+              <th style="width:7%">Tiempo trabajo</th>
+              <th style="width:7%">Incidente</th>
+              <th style="width:7%">Accidente</th>
+              <th style="width:9%">Enf. Profesional</th>
+              <th style="width:5%">Cal. IESS SI</th>
+              <th style="width:5%">Cal. IESS NO</th>
+              <th style="width:9%">Fecha</th>
+              <th style="width:10%">Especificar</th>
+              <th style="width:10%">Observaciones</th>
+              <th style="width:40px"></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
 
-    <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-            <i class="fa fa-times"></i> Cerrar
-        </button>
-        <button type="submit" class="btn btn-primary">
-            <i class="fa fa-save"></i> Guardar
-        </button>
-    </div>
+      <!-- I. ACTIVIDADES EXTRA LABORALES -->
+      <div class="section">
+        <div class="sec-title">I. ACTIVIDADES EXTRA LABORALES</div>
+        <div class="dyn-toolbar">
+          <span>Actividades extralaborales</span>
+          <button type="button" class="btn-sm" onclick="addRowActividad()">+ Agregar</button>
+        </div>
+        <table class="dyn-table" id="tblActividades">
+          <thead><tr>
+            <th style="width:40%">Tipo de actividad</th>
+            <th style="width:30%">Descripción / Observaciones</th>
+            <th style="width:25%">Fecha (aaaa/mm/dd)</th>
+            <th style="width:40px"></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- J. EXÁMENES -->
+      <div class="section">
+        <div class="sec-title">J. RESULTADOS DE EXÁMENES GENERALES Y ESPECÍFICOS DE ACUERDO AL RIESGO Y PUESTO DE TRABAJO</div>
+        <div class="dyn-toolbar">
+          <span>Exámenes (imagen, laboratorio y otros)</span>
+          <button type="button" class="btn-sm" onclick="addRowExamen()">+ Agregar</button>
+        </div>
+        <table class="dyn-table" id="tblExamenes">
+          <thead><tr>
+            <th style="width:28%">Nombre del examen</th>
+            <th style="width:15%">Fecha aaaa/mm/dd</th>
+            <th style="width:30%">Resultados</th>
+            <th style="width:22%">Observaciones</th>
+            <th style="width:40px"></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+        <div style="font-size:9px; padding:2px 3px; border:0.4px solid var(--border)">
+          OBSERVACIONES GENERALES: <input class="fi" name="examenes_observaciones" style="width:80%" value="{{ ev.examenes_observaciones|default_if_none:'' }}">
+        </div>
+      </div>
+
+      <!-- K. DIAGNÓSTICO -->
+      <div class="section">
+        <div class="sec-title">K. DIAGNÓSTICO &nbsp;<span style="font-weight:normal;font-size:10px">PRE: PRESUNTIVO &nbsp; DEF: DEFINITIVO</span></div>
+        <div class="dyn-toolbar">
+          <span>Diagnósticos CIE-10</span>
+          <button type="button" class="btn-sm" onclick="addRowDiagnostico()">+ Agregar</button>
+        </div>
+        <table class="dyn-table" id="tblDiagnosticos">
+          <thead><tr>
+            <th style="width:3%">#</th>
+            <th style="width:15%">CIE-10</th>
+            <th style="width:67%">Descripción</th>
+            <th style="width:7%" class="center">PRE</th>
+            <th style="width:7%" class="center">DEF</th>
+            <th style="width:40px"></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- L. APTITUD MÉDICA -->
+      <div class="section">
+        <div class="sec-title">L. APTITUD MÉDICA PARA EL TRABAJO</div>
+        <table>
+          <tr>
+            <td style="width:25%" class="col-hdr center">APTO</td>
+            <td style="width:25%" class="col-hdr center">APTO EN OBSERVACIÓN</td>
+            <td style="width:25%" class="col-hdr center">APTO CON LIMITACIONES</td>
+            <td style="width:25%" class="col-hdr center">NO APTO</td>
+          </tr>
+          <tr style="text-align:center; height:26px">
+            <td><div class="cb-group"><input type="radio" name="aptitud_medica" value="APTO"              {% if ev.aptitud_medica == 'APTO' %}checked{% endif %}> APTO</div></td>
+            <td><div class="cb-group"><input type="radio" name="aptitud_medica" value="APTO_OBSERVACION"  {% if ev.aptitud_medica == 'APTO_OBSERVACION' %}checked{% endif %}> APTO OBSERVACIÓN</div></td>
+            <td><div class="cb-group"><input type="radio" name="aptitud_medica" value="APTO_LIMITACIONES" {% if ev.aptitud_medica == 'APTO_LIMITACIONES' %}checked{% endif %}> CON LIMITACIONES</div></td>
+            <td><div class="cb-group"><input type="radio" name="aptitud_medica" value="NO_APTO"           {% if ev.aptitud_medica == 'NO_APTO' %}checked{% endif %}> NO APTO</div></td>
+          </tr>
+          <tr><td colspan="4" style="font-size:9px">OBSERVACIONES:</td></tr>
+          <tr><td colspan="4"><textarea class="fi" name="aptitud_detalle_observaciones" rows="2">{{ ev.aptitud_detalle_observaciones|default_if_none:'' }}</textarea></td></tr>
+        </table>
+      </div>
+
+      <!-- M. RECOMENDACIONES -->
+      <div class="section">
+        <div class="sec-title">M. RECOMENDACIONES Y/O TRATAMIENTO</div>
+        <table><tr><td><span class="row-lbl">Descripción</span>
+          <textarea class="fi" name="recomendaciones_tratamiento" rows="3">{{ ev.recomendaciones_tratamiento|default_if_none:'' }}</textarea>
+        </td></tr></table>
+      </div>
+
+      <!-- N. RETIRO -->
+      <div class="section">
+        <div class="sec-title">N. RETIRO (evaluación)</div>
+        <table style="font-size:10px">
+          <tr>
+            <td style="width:42%">SE REALIZA LA EVALUACIÓN</td>
+            <td style="width:8%" class="col-hdr center">SI</td>
+            <td style="width:8%" class="col-hdr center">NO</td>
+            <td style="width:42%"></td>
+          </tr>
+          <tr style="text-align:center">
+            <td></td>
+            <td><div class="cb-group"><input type="radio" name="retiro_se_realiza_evaluacion" value="true"  {% if ev.retiro_se_realiza_evaluacion %}checked{% endif %}></div></td>
+            <td><div class="cb-group"><input type="radio" name="retiro_se_realiza_evaluacion" value="false" {% if ev.retiro_se_realiza_evaluacion == False %}checked{% endif %}></div></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>LA CONDICIÓN DE SALUD ESTA RELACIONADA CON EL TRABAJO</td>
+            <td class="col-hdr center">SI</td>
+            <td class="col-hdr center">NO</td>
+            <td></td>
+          </tr>
+          <tr style="text-align:center">
+            <td></td>
+            <td><div class="cb-group"><input type="radio" name="retiro_condicion_relacionada_trabajo" value="true"  {% if ev.retiro_condicion_relacionada_trabajo %}checked{% endif %}></div></td>
+            <td><div class="cb-group"><input type="radio" name="retiro_condicion_relacionada_trabajo" value="false" {% if ev.retiro_condicion_relacionada_trabajo == False %}checked{% endif %}></div></td>
+            <td></td>
+          </tr>
+          <tr><td colspan="4" style="font-size:9px">Observación:</td></tr>
+          <tr><td colspan="4"><textarea class="fi" name="retiro_observacion" rows="2">{{ ev.retiro_observacion|default_if_none:'' }}</textarea></td></tr>
+        </table>
+      </div>
+
+      <!-- O / P -->
+      <div class="section">
+        <table>
+          <tr style="vertical-align:top">
+            <td style="width:65%; border:none; padding:0; padding-right:4px">
+              <div class="sec-title">O. DATOS DEL PROFESIONAL</div>
+              <table style="font-size:10px">
+                <tr>
+                  <td class="col-hdr center">NOMBRES Y APELLIDOS DEL PROFESIONAL</td>
+                  <td class="col-hdr center" style="width:25%">CÓDIGO MÉDICO</td>
+                  <td class="col-hdr center" style="width:20%">FIRMA Y SELLO</td>
+                </tr>
+                <tr>
+                  <!-- Select2 profesional -->
+                  <td>
+                    <input type="hidden" name="profesional" id="id_profesional" value="{{ ev.profesional_id|default_if_none:'' }}">
+                    <select id="id_profesional_select2" class="fi" style="width:100%">
+                      {% if ev.profesional %}
+                        <option value="{{ ev.profesional.id }}" selected>{{ ev.profesional.persona.nombres_completos }}</option>
+                      {% endif %}
+                    </select>
+                  </td>
+                  <td class="center" style="font-size:10px" id="disp_codigo_medico">{{ ev.profesional.codigo_medico|default_if_none:'' }}</td>
+                  <td></td>
+                </tr>
+              </table>
+            </td>
+            <td style="width:35%; border:none; padding:0; padding-left:4px">
+              <div class="sec-title">P. FIRMA O HUELLA DEL TRABAJADOR</div>
+              <table><tr style="height:40px"><td>
+                <textarea class="fi" name="firma_huella_trabajador" rows="3">{{ ev.firma_huella_trabajador|default_if_none:'' }}</textarea>
+              </td></tr></table>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+    </div><!-- /tab-p3 -->
+
+  </div><!-- /femo-wrapper -->
+
+  <!-- Footer con botones -->
+  <div class="form-footer">
+    <button type="button" class="btn btn-light" onclick="history.back()">✕ Cancelar</button>
+    <button type="submit" class="btn btn-primary">💾 Guardar</button>
+  </div>
+
 </form>
+<div style="position:sticky; bottom:0; background:#fff; border-top:2px solid #1e4e7c;
+            padding:8px 12px; display:flex; justify-content:flex-end; gap:8px; z-index:50;
+            box-shadow:0 -2px 8px rgba(0,0,0,.12);">
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+    <i class="fa fa-times"></i> Cerrar
+  </button>
+  <button type="submit" form="formModal" class="btn btn-primary">
+    <i class="fa fa-save"></i> Guardar
+  </button>
+</div>
 
 <!-- Precarga en EDIT (JSON desde backend) -->
 <script id="preloadData" type="application/json">
 {{ preload_json|default:"{}"|safe }}
 </script>
-<script type="text/javascript" src='/static/js/select2.js?v=1.0.0' ></script>
-    <link type='text/css' rel='stylesheet' href="/static/css/select2.css?v=1.0.0"/>
 <script>
-
-    /* ======== UTIL ======== */
-    function esc(s) {
-        return (s ?? "")
-            .toString()
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
-
-
-    function toBool(v) {
-        return v === true || v === "true" || v === 1 || v === "1";
-    }
-
-    function delRow(btn, tipo) {
-        const tr = btn.closest('tr');
-        const id = tr?.dataset?.id;
-
-        if (id) {
-            if (tipo === "antecedentes") deletedAntecedentes.push(parseInt(id));
-            if (tipo === "incidentes") deletedIncidentes.push(parseInt(id));
-            if (tipo === "actividades") deletedActividades.push(parseInt(id));
-            if (tipo === "examenes") deletedExamenes.push(parseInt(id));
-            if (tipo === "diagnosticos") deletedDiagnosticos.push(parseInt(id));
-        }
-        tr.remove();
-    }
-
-
-    /* ======== ANTECEDENTES ======== */
-    function addRowAntecedente(d = {}) {
-        const tbody = document.querySelector("#tblAntecedentes tbody");
-        const tr = document.createElement("tr");
-        tr.dataset.id = d.id || ""; // ✅ importante
-
-        tr.innerHTML = `
-    <td><input class="form-control form-control-sm a-empresa" value="${esc(d.empresa)}"></td>
-    <td><input class="form-control form-control-sm a-puesto" value="${esc(d.puesto)}"></td>
-    <td><textarea class="form-control form-control-sm a-actividad" rows="1">${esc(d.actividad)}</textarea></td>
-    <td><input class="form-control form-control-sm a-tiempo" value="${esc(d.tiempo)}"></td>
-    <td><textarea class="form-control form-control-sm a-riesgos" rows="1">${esc(d.riesgos)}</textarea></td>
-    <td><textarea class="form-control form-control-sm a-epp" rows="1">${esc(d.epp)}</textarea></td>
-    <td><textarea class="form-control form-control-sm a-observaciones" rows="1">${esc(d.observaciones)}</textarea></td>
-    <td class="text-center">
-      <button type="button" class="btn btn-sm btn-outline-danger"
-              onclick="delRow(this,'antecedentes')"><i class="fa fa-trash"></i></button>
-    </td>`;
-        tbody.appendChild(tr);
-    }
-
-
-    function collectAntecedentes() {
-        const rows = document.querySelectorAll("#tblAntecedentes tbody tr");
-        const data = [];
-        rows.forEach(tr => {
-            const obj = {
-                id: tr.dataset.id || null,
-                empresa: tr.querySelector(".a-empresa")?.value || "",
-                puesto: tr.querySelector(".a-puesto")?.value || "",
-                actividad: tr.querySelector(".a-actividad")?.value || "",
-                tiempo: tr.querySelector(".a-tiempo")?.value || "",
-                riesgos: tr.querySelector(".a-riesgos")?.value || "",
-                epp: tr.querySelector(".a-epp")?.value || "",
-                observaciones: tr.querySelector(".a-observaciones")?.value || "",
-            };
-            if (Object.values(obj).some(v => (v || "").toString().trim() !== "")) data.push(obj);
-        });
-        return data;
-    }
-
-
-    /* ======== INCIDENTES ======== */
-    function addRowIncidente(d = {}) {
-        const tbody = document.querySelector("#tblIncidentes tbody");
-        const tr = document.createElement("tr");
-        tr.dataset.id = d.id || "";
-
-        tr.innerHTML = `
-    <td><input class="form-control form-control-sm i-puesto" value="${esc(d.puesto_trabajo)}"></td>
-    <td><textarea class="form-control form-control-sm i-actividad" rows="1">${esc(d.actividad_desempenada)}</textarea></td>
-    <td><input type="date" class="form-control form-control-sm i-fecha" value="${esc(d.fecha)}"></td>
-    <td><textarea class="form-control form-control-sm i-descripcion" rows="1">${esc(d.descripcion)}</textarea></td>
-    <td class="text-center"><input type="checkbox" class="form-check-input i-calificado" ${toBool(d.calificado_por_instituto) ? "checked" : ""}></td>
-    <td class="text-center"><input type="checkbox" class="form-check-input i-reubicacion" ${toBool(d.reubicacion) ? "checked" : ""}></td>
-    <td><textarea class="form-control form-control-sm i-observaciones" rows="1">${esc(d.observaciones)}</textarea></td>
-    <td class="text-center">
-      <button type="button" class="btn btn-sm btn-outline-danger"
-              onclick="delRow(this,'incidentes')"><i class="fa fa-trash"></i></button>
-    </td>`;
-        tbody.appendChild(tr);
-    }
-
-
-    function collectIncidentes() {
-  const rows = document.querySelectorAll("#tblIncidentes tbody tr");
-  const data = [];
-
-  rows.forEach(tr => {
-    const obj = {
-      id: tr.dataset.id || null,  // ✅ CLAVE
-      puesto_trabajo: tr.querySelector(".i-puesto")?.value || "",
-      actividad_desempenada: tr.querySelector(".i-actividad")?.value || "",
-      fecha: tr.querySelector(".i-fecha")?.value || "",
-      descripcion: tr.querySelector(".i-descripcion")?.value || "",
-      calificado_por_instituto: tr.querySelector(".i-calificado")?.checked || false,
-      reubicacion: tr.querySelector(".i-reubicacion")?.checked || false,
-      observaciones: tr.querySelector(".i-observaciones")?.value || "",
-    };
-
-    if (Object.values(obj).some(v => (v === true) || ((v || "").toString().trim() !== ""))) {
-      data.push(obj);
-    }
+/* ── Tabs ── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
   });
+});
 
-  return data;
+/* ── IMC auto ── */
+function calcIMC() {
+  const p = parseFloat(document.getElementById('f_peso')?.value);
+  const t = parseFloat(document.getElementById('f_talla')?.value);
+  const imc = document.getElementById('f_imc');
+  if (imc && p > 0 && t > 0) imc.value = (p / ((t/100)**2)).toFixed(2);
+}
+document.getElementById('f_peso')?.addEventListener('input', calcIMC);
+document.getElementById('f_talla')?.addEventListener('input', calcIMC);
+
+/* ── Deleted arrays ── */
+let deletedAntecedentes=[], deletedIncidentes=[], deletedActividades=[], deletedExamenes=[], deletedDiagnosticos=[];
+
+function esc(s){ return (s??'').toString().replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+function toBool(v){ return v===true||v==='true'||v===1||v==='1'; }
+function delRow(btn, tipo){
+  const tr = btn.closest('tr');
+  const id = tr?.dataset?.id;
+  if(id){
+    if(tipo==='antecedentes') deletedAntecedentes.push(parseInt(id));
+    if(tipo==='actividades')  deletedActividades.push(parseInt(id));
+    if(tipo==='examenes')     deletedExamenes.push(parseInt(id));
+    if(tipo==='diagnosticos') deletedDiagnosticos.push(parseInt(id));
+  }
+  tr.remove();
 }
 
-
-    /* ======== ACTIVIDADES EXTRA ======== */
-    function addRowActividad(d = {}) {
-        const tbody = document.querySelector("#tblActividades tbody");
-        const tr = document.createElement("tr");
-        tr.dataset.id = d.id || "";
-
-        tr.innerHTML = `
-    <td><input class="form-control form-control-sm x-tipo" value="${esc(d.tipo_actividad)}"></td>
-    <td><input class="form-control form-control-sm x-frecuencia" value="${esc(d.frecuencia)}"></td>
-    <td><textarea class="form-control form-control-sm x-observaciones" rows="1">${esc(d.observaciones)}</textarea></td>
-    <td class="text-center">
-      <button type="button" class="btn btn-sm btn-outline-danger"
-              onclick="delRow(this,'actividades')"><i class="fa fa-trash"></i></button>
-    </td>`;
-        tbody.appendChild(tr);
-    }
-
-
-    function collectActividades() {
-  const rows = document.querySelectorAll("#tblActividades tbody tr");
-  const data = [];
-
-  rows.forEach(tr => {
-    const obj = {
-      id: tr.dataset.id || null,  // ✅
-      tipo_actividad: tr.querySelector(".x-tipo")?.value || "",
-      frecuencia: tr.querySelector(".x-frecuencia")?.value || "",
-      observaciones: tr.querySelector(".x-observaciones")?.value || "",
-    };
-
-    if (Object.values(obj).some(v => (v || "").toString().trim() !== "")) {
-      data.push(obj);
-    }
-  });
-
-  return data;
+/* ── ANTECEDENTES (tabla H) ── */
+function addRowAntecedente(d={}){
+  const tbody = document.querySelector('#tblAntecedentes tbody');
+  const tr = document.createElement('tr');
+  tr.dataset.id = d.id||'';
+  tr.innerHTML=`
+    <td><input class="fi a-empresa"  value="${esc(d.empresa)}"></td>
+    <td><textarea class="fi a-actividad" rows="1">${esc(d.actividad_desempenada||d.actividad)}</textarea></td>
+    <td class="center"><input type="checkbox" class="a-anterior" ${toBool(d.anterior)?'checked':''}></td>
+    <td class="center"><input type="checkbox" class="a-actual"   ${toBool(d.actual)?'checked':''}></td>
+    <td><input class="fi a-tiempo" value="${esc(d.tiempo)}"></td>
+    <td class="center"><input type="checkbox" class="a-incidente"  ${toBool(d.incidente)?'checked':''}></td>
+    <td class="center"><input type="checkbox" class="a-accidente"  ${toBool(d.accidente)?'checked':''}></td>
+    <td class="center"><input type="checkbox" class="a-enfermedad" ${toBool(d.enfermedad_profesional)?'checked':''}></td>
+    <td class="center"><input type="checkbox" class="a-cal-si" ${toBool(d.calificado_por_instituto)?'checked':''}></td>
+    <td class="center"><input type="checkbox" class="a-cal-no" ${toBool(d.calificado_por_instituto===false)?'checked':''}></td>
+    <td><input type="date" class="fi a-fecha" value="${esc(d.fecha)}"></td>
+    <td><input class="fi a-desc" value="${esc(d.descripcion)}"></td>
+    <td><input class="fi a-obs"  value="${esc(d.observaciones)}"></td>
+    <td class="center"><button type="button" class="btn-danger-sm" onclick="delRow(this,'antecedentes')">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function collectAntecedentes(){
+  return [...document.querySelectorAll('#tblAntecedentes tbody tr')].map(tr=>({
+    id: tr.dataset.id||null,
+    empresa: tr.querySelector('.a-empresa')?.value||'',
+    actividad_desempenada: tr.querySelector('.a-actividad')?.value||'',
+    anterior: tr.querySelector('.a-anterior')?.checked||false,
+    actual:   tr.querySelector('.a-actual')?.checked||false,
+    tiempo:   tr.querySelector('.a-tiempo')?.value||'',
+    incidente:  tr.querySelector('.a-incidente')?.checked||false,
+    accidente:  tr.querySelector('.a-accidente')?.checked||false,
+    enfermedad_profesional: tr.querySelector('.a-enfermedad')?.checked||false,
+    calificado_por_instituto: tr.querySelector('.a-cal-si')?.checked||false,
+    fecha: tr.querySelector('.a-fecha')?.value||'',
+    descripcion: tr.querySelector('.a-desc')?.value||'',
+    observaciones: tr.querySelector('.a-obs')?.value||'',
+  })).filter(o=>Object.values(o).some(v=>v===true||(v||'').toString().trim()!==''));
 }
 
-
-    /* ======== EXAMENES ======== */
-    function addRowExamen(d = {}) {
-        const tbody = document.querySelector("#tblExamenes tbody");
-        const tr = document.createElement("tr");
-        tr.dataset.id = d.id || "";
-
-        tr.innerHTML = `
-    <td><input class="form-control form-control-sm e-nombre" value="${esc(d.nombre_examen)}"></td>
-    <td><input type="date" class="form-control form-control-sm e-fecha" value="${esc(d.fecha)}"></td>
-    <td><textarea class="form-control form-control-sm e-resultados" rows="1">${esc(d.resultados)}</textarea></td>
-    <td><textarea class="form-control form-control-sm e-observaciones" rows="1">${esc(d.observaciones)}</textarea></td>
-    <td class="text-center">
-      <button type="button" class="btn btn-sm btn-outline-danger"
-              onclick="delRow(this,'examenes')"><i class="fa fa-trash"></i></button>
-    </td>`;
-        tbody.appendChild(tr);
-    }
-
-
-    function collectExamenes() {
-  const rows = document.querySelectorAll("#tblExamenes tbody tr");
-  const data = [];
-
-  rows.forEach(tr => {
-    const obj = {
-      id: tr.dataset.id || null,  // ✅
-      nombre_examen: tr.querySelector(".e-nombre")?.value || "",
-      fecha: tr.querySelector(".e-fecha")?.value || "",
-      resultados: tr.querySelector(".e-resultados")?.value || "",
-      observaciones: tr.querySelector(".e-observaciones")?.value || "",
-    };
-
-    if (Object.values(obj).some(v => (v || "").toString().trim() !== "")) {
-      data.push(obj);
-    }
-  });
-
-  return data;
+/* ── ACTIVIDADES EXTRA ── */
+function addRowActividad(d={}){
+  const tbody = document.querySelector('#tblActividades tbody');
+  const tr = document.createElement('tr');
+  tr.dataset.id = d.id||'';
+  tr.innerHTML=`
+    <td><input class="fi x-tipo" value="${esc(d.tipo_actividad)}"></td>
+    <td><textarea class="fi x-obs" rows="1">${esc(d.observaciones)}</textarea></td>
+    <td><input type="date" class="fi x-fecha" value="${esc(d.fecha)}"></td>
+    <td class="center"><button type="button" class="btn-danger-sm" onclick="delRow(this,'actividades')">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function collectActividades(){
+  return [...document.querySelectorAll('#tblActividades tbody tr')].map(tr=>({
+    id: tr.dataset.id||null,
+    tipo_actividad: tr.querySelector('.x-tipo')?.value||'',
+    observaciones:  tr.querySelector('.x-obs')?.value||'',
+    fecha: tr.querySelector('.x-fecha')?.value||'',
+  })).filter(o=>Object.values(o).some(v=>(v||'').toString().trim()!==''));
 }
 
-
-    /* ======== DIAGNOSTICOS ======== */
-    function addRowDiagnostico(d = {}) {
-        const tbody = document.querySelector("#tblDiagnosticos tbody");
-        const tr = document.createElement("tr");
-        tr.dataset.id = d.id || "";
-
-        tr.innerHTML = `
-    <td><input class="form-control form-control-sm d-cie10" value="${esc(d.cie10)}"></td>
-    <td><textarea class="form-control form-control-sm d-desc" rows="1">${esc(d.descripcion)}</textarea></td>
-    <td class="text-center"><input type="checkbox" class="form-check-input d-pres" ${toBool(d.presuntivo) ? "checked" : ""}></td>
-    <td class="text-center"><input type="checkbox" class="form-check-input d-def" ${toBool(d.definitivo) ? "checked" : ""}></td>
-    <td class="text-center">
-      <button type="button" class="btn btn-sm btn-outline-danger"
-              onclick="delRow(this,'diagnosticos')"><i class="fa fa-trash"></i></button>
-    </td>`;
-        tbody.appendChild(tr);
-    }
-
-
-    function collectDiagnosticos() {
-  const rows = document.querySelectorAll("#tblDiagnosticos tbody tr");
-  const data = [];
-
-  rows.forEach(tr => {
-    const obj = {
-      id: tr.dataset.id || null,  // ✅
-      cie10: tr.querySelector(".d-cie10")?.value || "",
-      descripcion: tr.querySelector(".d-desc")?.value || "",
-      presuntivo: tr.querySelector(".d-pres")?.checked || false,
-      definitivo: tr.querySelector(".d-def")?.checked || false,
-    };
-
-    if (Object.values(obj).some(v => (v === true) || ((v || "").toString().trim() !== ""))) {
-      data.push(obj);
-    }
-  });
-
-  return data;
+/* ── EXÁMENES ── */
+function addRowExamen(d={}){
+  const tbody = document.querySelector('#tblExamenes tbody');
+  const tr = document.createElement('tr');
+  tr.dataset.id = d.id||'';
+  tr.innerHTML=`
+    <td><input class="fi e-nombre" value="${esc(d.nombre_examen)}"></td>
+    <td><input type="date" class="fi e-fecha" value="${esc(d.fecha)}"></td>
+    <td><textarea class="fi e-result" rows="1">${esc(d.resultados)}</textarea></td>
+    <td><textarea class="fi e-obs"    rows="1">${esc(d.observaciones)}</textarea></td>
+    <td class="center"><button type="button" class="btn-danger-sm" onclick="delRow(this,'examenes')">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function collectExamenes(){
+  return [...document.querySelectorAll('#tblExamenes tbody tr')].map(tr=>({
+    id: tr.dataset.id||null,
+    nombre_examen: tr.querySelector('.e-nombre')?.value||'',
+    fecha:         tr.querySelector('.e-fecha')?.value||'',
+    resultados:    tr.querySelector('.e-result')?.value||'',
+    observaciones: tr.querySelector('.e-obs')?.value||'',
+  })).filter(o=>Object.values(o).some(v=>(v||'').toString().trim()!==''));
 }
 
+/* ── DIAGNÓSTICOS ── */
+let dxCounter = 0;
+function addRowDiagnostico(d={}){
+  dxCounter++;
+  const tbody = document.querySelector('#tblDiagnosticos tbody');
+  const tr = document.createElement('tr');
+  tr.dataset.id = d.id||'';
+  tr.innerHTML=`
+    <td class="center">${dxCounter}</td>
+    <td><input class="fi d-cie10" value="${esc(d.cie10)}"></td>
+    <td><textarea class="fi d-desc" rows="1">${esc(d.descripcion)}</textarea></td>
+    <td class="center"><input type="checkbox" class="d-pres" ${toBool(d.presuntivo)?'checked':''}></td>
+    <td class="center"><input type="checkbox" class="d-def"  ${toBool(d.definitivo)?'checked':''}></td>
+    <td class="center"><button type="button" class="btn-danger-sm" onclick="delRow(this,'diagnosticos')">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function collectDiagnosticos(){
+  return [...document.querySelectorAll('#tblDiagnosticos tbody tr')].map(tr=>({
+    id:          tr.dataset.id||null,
+    cie10:       tr.querySelector('.d-cie10')?.value||'',
+    descripcion: tr.querySelector('.d-desc')?.value||'',
+    presuntivo:  tr.querySelector('.d-pres')?.checked||false,
+    definitivo:  tr.querySelector('.d-def')?.checked||false,
+  })).filter(o=>Object.values(o).some(v=>v===true||(v||'').toString().trim()!==''));
+}
 
-    /* ======== CERTIFICADO (1) ======== */
-    function collectCertificado() {
-        return {
-            fecha_emision: document.getElementById("c_fecha_emision")?.value || "",
-            aptitud_medica: document.getElementById("c_aptitud")?.value || "",
-            detalle_observaciones: document.getElementById("c_detalle")?.value || "",
-            recomendaciones: document.getElementById("c_recomendaciones")?.value || "",
-            firma_huella_trabajador: document.getElementById("c_firma_huella")?.value || "",
-        };
-    }
+/* ── PRELOAD ── */
+function preload(){
+  let payload={};
+  try{ payload=JSON.parse(document.getElementById('preloadData').textContent||'{}'); }catch(e){}
+  (payload.antecedentes||[]).forEach(addRowAntecedente);
+  (payload.actividades||[]).forEach(addRowActividad);
+  (payload.examenes||[]).forEach(addRowExamen);
+  (payload.diagnosticos||[]).forEach(addRowDiagnostico);
+  if(!(payload.antecedentes||[]).length) addRowAntecedente();
+  if(!(payload.diagnosticos||[]).length) addRowDiagnostico();
+}
 
-    /* ======== PRELOAD EDIT ======== */
-    function preload() {
-        let payload = {};
-        try {
-            const raw = document.getElementById("preloadData")?.textContent || "{}";
-            payload = JSON.parse(raw);
-        } catch (e) {
-            payload = {};
-        }
+/* ── SUBMIT ── */
+document.getElementById('formModal').addEventListener('submit', function(){
+  document.getElementById('antecedentes_json').value   = JSON.stringify(collectAntecedentes());
+  document.getElementById('actividades_json').value    = JSON.stringify(collectActividades());
+  document.getElementById('examenes_json').value       = JSON.stringify(collectExamenes());
+  document.getElementById('diagnosticos_json').value   = JSON.stringify(collectDiagnosticos());
+  document.getElementById('antecedentes_deleted').value= JSON.stringify(deletedAntecedentes);
+  document.getElementById('actividades_deleted').value = JSON.stringify(deletedActividades);
+  document.getElementById('examenes_deleted').value    = JSON.stringify(deletedExamenes);
+  document.getElementById('diagnosticos_deleted').value= JSON.stringify(deletedDiagnosticos);
+  // certificado_json e incidentes_json se mantienen vacíos (fusionados en antecedentes H)
+  document.getElementById('incidentes_json').value = '[]';
+  document.getElementById('certificado_json').value = '{}';
+}, true);
 
-        (payload.antecedentes || []).forEach(addRowAntecedente);
-        (payload.incidentes || []).forEach(addRowIncidente);
-        (payload.actividades || []).forEach(addRowActividad);
-        (payload.examenes || []).forEach(addRowExamen);
-        (payload.diagnosticos || []).forEach(addRowDiagnostico);
-
-        const c = payload.certificado || {};
-        if (document.getElementById("c_fecha_emision")) document.getElementById("c_fecha_emision").value = c.fecha_emision || "";
-        if (document.getElementById("c_aptitud")) document.getElementById("c_aptitud").value = c.aptitud_medica || "";
-        if (document.getElementById("c_detalle")) document.getElementById("c_detalle").value = c.detalle_observaciones || "";
-        if (document.getElementById("c_recomendaciones")) document.getElementById("c_recomendaciones").value = c.recomendaciones || "";
-        if (document.getElementById("c_firma_huella")) document.getElementById("c_firma_huella").value = c.firma_huella_trabajador || "";
-
-        // si no hay nada, pon una fila por defecto para no estar vacío
-        if ((payload.antecedentes || []).length === 0) addRowAntecedente();
-        if ((payload.diagnosticos || []).length === 0) addRowDiagnostico();
-    }
-
-    /* ======== BEFORE SUBMIT: SERIALIZA ======== */
-    document.addEventListener("submit", function (e) {
-        const f = e.target;
-        if (f && f.id === "formModal") {
-            $("#antecedentes_deleted").val(JSON.stringify(deletedAntecedentes));
-            $("#incidentes_deleted").val(JSON.stringify(deletedIncidentes));
-            $("#actividades_deleted").val(JSON.stringify(deletedActividades));
-            $("#examenes_deleted").val(JSON.stringify(deletedExamenes));
-            $("#diagnosticos_deleted").val(JSON.stringify(deletedDiagnosticos));
-
-            document.getElementById("antecedentes_json").value = JSON.stringify(collectAntecedentes());
-            document.getElementById("incidentes_json").value = JSON.stringify(collectIncidentes());
-            document.getElementById("actividades_json").value = JSON.stringify(collectActividades());
-            document.getElementById("examenes_json").value = JSON.stringify(collectExamenes());
-            document.getElementById("diagnosticos_json").value = JSON.stringify(collectDiagnosticos());
-            document.getElementById("certificado_json").value = JSON.stringify(collectCertificado());
-        }
-    }, true);
-
-    preload();
+preload();
 </script>
+
+<!-- Select2 (igual que tu código actual) -->
+<link rel="stylesheet" href="/static/css/select2.css?v=1.0.0">
+<script src="/static/js/select2.js?v=1.0.0"></script>
 <script>
-    $(function(){
-        ItemsDisplay = function (item) {
-                if (item.name) {
-                    return $('<span>' + item.name + '</span>');
-                } else {
-                    return '---------';
-                }
-            };
-        $('#id_persona_select2').attr('tabindex', '0');
-        $("#id_persona_select2").select2({
-                placeholder: "---------",
-                allowClear: true,
-                dropdownParent: $('#id_persona_select2').parent(), // impo7
-                ajax: {
-                    url: function (params) {
-                        return "/consultargeneral?action=data&model=Persona&p=1&s=10&q=" + params.term;
-                    },
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            q: params.term,
-                            page: params.page
-                        };
-                    },
-                    processResults: function (data, params) {
-                        params.page = params.page || 1;
-                        return {
-                            results: data.results,
-                            pagination: {
-                                more: (params.page * 30) < data.total_count
-                            }
-                        };
-                    },
-                    cache: true
-                },
-                escapeMarkup: function (markup) {
-                    return markup;
-                }, // let our custom formatter work
-                minimumInputLength: 1,
-                templateResult: ItemsDisplay, // omitted for brevity, see the source of this page
-                templateSelection: ItemsDisplay // omitted for brevity, see the source of this page
-            }).on("select2:select", function (evt) {
-                $("#id_persona").attr({"value": (evt.params.data.id)});
-            });
-    })
+$(function(){
+  function itemDisplay(item){ return item.name ? $('<span>'+item.name+'</span>') : '---------'; }
+
+  $('#id_persona_select2').select2({
+    placeholder:'Buscar persona...', allowClear:true,
+    dropdownParent:$('#id_persona_select2').parent(),
+    ajax:{
+      url: p => '/consultargeneral?action=data&model=Persona&p=1&s=10&q='+(p.term||''),
+      dataType:'json', delay:250,
+      processResults: d => ({ results:d.results, pagination:{more:false} }),
+      cache:true
+    },
+    minimumInputLength:1,
+    templateResult:itemDisplay, templateSelection:itemDisplay
+  }).on('select2:select', function(e){
+    $('#id_persona').val(e.params.data.id);
+    // Rellenar campos readonly de persona
+    const d = e.params.data;
+    document.getElementById('disp_primerapellido').textContent  = d.primerapellido||'';
+    document.getElementById('disp_segundoapellido').textContent = d.segundoapellido||'';
+    document.getElementById('disp_nombres').textContent         = d.nombres||'';
+    document.getElementById('disp_segundonombre').textContent   = d.segundonombre||'';
+    document.getElementById('disp_anio').innerHTML              = (d.fecha_nacimiento||'').slice(0,4)+'<br><span style="font-size:8px">año</span>';
+    document.getElementById('disp_mes').innerHTML               = (d.fecha_nacimiento||'').slice(5,7)+'<br><span style="font-size:8px">mes</span>';
+    document.getElementById('disp_dia').innerHTML               = (d.fecha_nacimiento||'').slice(8,10)+'<br><span style="font-size:8px">día</span>';
+    document.getElementById('disp_edad').textContent            = d.edad||'';
+    document.getElementById('disp_gsanguineo').textContent      = d.grupo_sanguineo||'';
+    document.getElementById('disp_lateralidad').textContent     = d.lateralidad||'';
+    document.getElementById('disp_sexo_h').textContent          = d.sexo==='M'?'☑':'☐';
+    document.getElementById('disp_sexo_m').textContent          = d.sexo==='F'?'☑':'☐';
+  });
+
+  $('#id_profesional_select2').select2({
+    placeholder:'Buscar profesional...', allowClear:true,
+    dropdownParent:$('#id_profesional_select2').parent(),
+    ajax:{
+      url: p => '/consultargeneral?action=data&model=ProfesionalSalud&p=1&s=10&q='+(p.term||''),
+      dataType:'json', delay:250,
+      processResults: d => ({ results:d.results, pagination:{more:false} }),
+      cache:true
+    },
+    minimumInputLength:1,
+    templateResult:itemDisplay, templateSelection:itemDisplay
+  }).on('select2:select', function(e){
+    $('#id_profesional').val(e.params.data.id);
+    document.getElementById('disp_codigo_medico').textContent = e.params.data.codigo_medico||'';
+  });
+});
 </script>
+<style>
+    /* ── Variables ── */
+    :root {
+      --blue:   #1e4e7c;
+      --green:  #c6efce;
+      --yellow: #fffde7;
+      --border: #aaa;
+      --thin:   0.5px;
+    }
+
+    html, body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      color: #000;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+    * { box-sizing: border-box; }
+
+    /* ── Wrapper ── */
+    .femo-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px;
+      background: #fff;
+    }
+
+    /* ── Secciones ── */
+    .sec-title {
+      background: var(--blue);
+      color: #fff;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 4px 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 0;
+    }
+    .sub-title {
+      background: var(--green);
+      font-weight: 700;
+      font-size: 10px;
+      padding: 2px 4px;
+      text-transform: uppercase;
+    }
+    .section { margin-bottom: 6px; }
+
+    /* ── Tablas ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    td, th {
+      border: var(--thin) solid var(--border);
+      padding: 2px 3px;
+      vertical-align: middle;
+      word-wrap: break-word;
+    }
+    .col-hdr {
+      background: var(--green);
+      font-weight: 700;
+      font-size: 9px;
+      text-align: center;
+      padding: 2px 3px;
+    }
+    .row-lbl {
+      font-size: 9px;
+      color: #444;
+      display: block;
+      margin-bottom: 1px;
+    }
+
+    /* ── Inputs dentro de celdas ── */
+    .fi {                          /* field-input */
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      background: transparent;
+      font-family: inherit;
+      font-size: 11px;
+      padding: 1px 2px;
+      outline: none;
+      color: #000;
+    }
+    .fi:focus { border-bottom-color: var(--blue); background: #f0f7ff; }
+
+    textarea.fi {
+      resize: vertical;
+      min-height: 28px;
+      line-height: 1.3;
+    }
+    select.fi {
+      cursor: pointer;
+    }
+
+    /* checkbox con label inline */
+    .cb-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 10px;
+    }
+    .cb-group input[type=checkbox] {
+      width: 13px;
+      height: 13px;
+      cursor: pointer;
+      accent-color: var(--blue);
+    }
+
+    /* ── Texto rotado (examen físico) ── */
+    .rotated {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      text-align: center;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 0;
+      white-space: nowrap;
+      background: var(--green);
+    }
+
+    /* ── Tablas de sub-items dinámicos ── */
+    .dyn-table thead th {
+      background: var(--green);
+      font-size: 9px;
+      font-weight: 700;
+      text-align: center;
+      padding: 2px 3px;
+    }
+    .dyn-table td { font-size: 10px; padding: 2px 3px; }
+    .dyn-table .fi { font-size: 10px; }
+
+    /* ── Footer sticky de botones ── */
+    .form-footer {
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      border-top: 2px solid var(--blue);
+      padding: 8px 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      z-index: 100;
+      box-shadow: 0 -2px 8px rgba(0,0,0,.12);
+    }
+    .btn {
+      padding: 6px 18px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #163d62; }
+    .btn-light { background: #e9ecef; color: #333; }
+    .btn-sm {
+      padding: 3px 10px;
+      font-size: 10px;
+      border-radius: 3px;
+      border: 1px solid var(--blue);
+      background: var(--blue);
+      color: #fff;
+      cursor: pointer;
+    }
+    .btn-danger-sm {
+      padding: 2px 6px;
+      font-size: 10px;
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    /* ── Título principal ── */
+    .main-title {
+      background: var(--blue);
+      color: #fff;
+      text-align: center;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 5px;
+      margin-bottom: 5px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Fila dinámica toolbar */
+    .dyn-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--green);
+      padding: 3px 5px;
+      margin-top: 4px;
+    }
+    .dyn-toolbar span { font-weight: 700; font-size: 10px; }
+
+    /* Tabs */
+    .tab-nav {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 5px 12px;
+      background: #e0eaf4;
+      border: 1px solid var(--blue);
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--blue);
+    }
+    .tab-btn.active {
+      background: var(--blue);
+      color: #fff;
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .center { text-align: center; }
+    .bold   { font-weight: 700; }
+    .italic { font-style: italic; font-size: 9px; }
+    .small  { font-size: 9px; }
+  </style>
