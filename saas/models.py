@@ -1,4 +1,6 @@
 import uuid
+import datetime
+from datetime import date, datetime
 from django.db import models
 from django.db.models.query_utils import Q
 from django.contrib.auth.models import User, Group
@@ -73,6 +75,7 @@ class Persona(ModeloBase):
     nombres = models.CharField(max_length=255, blank=True, null=True)
     primerapellido = models.CharField(max_length=255, blank=True, null=True)
     segundoapellido = models.CharField(max_length=255, blank=True, null=True)
+    nacimiento = models.DateField(blank=True, null=True, verbose_name=u"Fecha de nacimiento")
 
     email = models.EmailField(blank=True, null=True)
     telefono = models.CharField(max_length=30, blank=True, null=True)
@@ -212,17 +215,26 @@ class EvaluacionMedicaOcupacional(ModeloBase):
     puesto_trabajo_ciu         = models.CharField(max_length=255, blank=True, null=True)
 
     # Grupo de atención prioritaria — 4 checks independientes
-    gap_embarazada    = models.CharField(max_length=5, blank=True, null=True,
+    gap_embarazada    = models.IntegerField(default=1, blank=True, null=True,
                                          choices=RESPUESTA_SIMPLE)
-    gap_discapacidad  = models.CharField(max_length=5, blank=True, null=True,
+    gap_discapacidad  = models.IntegerField(default=1, blank=True, null=True,
                                          choices=RESPUESTA_SIMPLE)
-    gap_catastrofica  = models.CharField(max_length=5, blank=True, null=True,
+    gap_catastrofica  = models.IntegerField(default=1, blank=True, null=True,
                                          choices=RESPUESTA_SIMPLE)
-    gap_adulto_mayor  = models.CharField(max_length=5, blank=True, null=True,
+    gap_adulto_mayor  = models.IntegerField(default=1, blank=True, null=True,
                                          choices=RESPUESTA_SIMPLE)
 
     # Campo legacy (mantener por compatibilidad)
     grupo_atencion_prioritaria = models.CharField(max_length=255, blank=True, null=True)
+
+    grupo_sanguineo = models.CharField(max_length=255, blank=True, null=True)
+    lateralidad = models.CharField(max_length=255, blank=True, null=True)
+
+    #NACIMIENTO
+    anio_nacimiento = models.IntegerField(default=0, blank=True, null=True)
+    mes_nacimiento = models.IntegerField(default=0, blank=True, null=True)
+    dia_nacimiento = models.IntegerField(default=0, blank=True, null=True)
+    edad_anios = models.IntegerField(default=0, blank=True, null=True)
 
     # ── B. Motivo de consulta ──
     fecha_atencion          = models.DateField(blank=True, null=True)
@@ -230,8 +242,8 @@ class EvaluacionMedicaOcupacional(ModeloBase):
     fecha_reintegro         = models.DateField(blank=True, null=True)
     fecha_ultimo_dia_laboral= models.DateField(blank=True, null=True)
 
-    tipo_evaluacion = models.CharField(
-        max_length=20, blank=True, null=True,
+    tipo_evaluacion = models.IntegerField(
+        default=1, blank=True, null=True,
         choices=TIPO_EVALUACION_CHOICES
     )
     motivo_consulta = models.TextField(blank=True, null=True)
@@ -251,7 +263,7 @@ class EvaluacionMedicaOcupacional(ModeloBase):
     cesareas  = models.PositiveIntegerField(blank=True, null=True)
     abortos   = models.PositiveIntegerField(blank=True, null=True)
 
-    planificacion_familiar      = models.CharField(max_length=20, blank=True, null=True,
+    planificacion_familiar      = models.IntegerField(default=1, blank=True, null=True,
                                                     choices=OPCIONES_RESPUESTA)
     planificacion_familiar_cual = models.CharField(max_length=255, blank=True, null=True)
 
@@ -262,7 +274,7 @@ class EvaluacionMedicaOcupacional(ModeloBase):
     # Reproductivos masculinos
     examenes_masculino_cual   = models.CharField(max_length=255, blank=True, null=True)
     examenes_masculino_tiempo = models.CharField(max_length=100, blank=True, null=True)
-    plan_fam_masculino        = models.CharField(max_length=20, blank=True, null=True,
+    plan_fam_masculino        = models.IntegerField(default=1, blank=True, null=True,
                                                   choices=OPCIONES_RESPUESTA)
     plan_fam_masculino_cual   = models.CharField(max_length=255, blank=True, null=True)
 
@@ -329,14 +341,8 @@ class EvaluacionMedicaOcupacional(ModeloBase):
     examenes_observaciones = models.TextField(blank=True, null=True)
 
     # ── L. Aptitud médica ──
-    aptitud_medica = models.CharField(
-        max_length=30, blank=True, null=True,
-        choices=(
-            ("APTO",             "Apto"),
-            ("APTO_OBSERVACION", "Apto en observación"),
-            ("APTO_LIMITACIONES","Apto con limitaciones"),
-            ("NO_APTO",          "No apto"),
-        )
+    aptitud_medica = models.IntegerField(default=1, blank=True, null=True,
+        choices=APTITUD_MEDICA
     )
     aptitud_detalle_observaciones = models.TextField(blank=True, null=True)
 
@@ -358,6 +364,46 @@ class EvaluacionMedicaOcupacional(ModeloBase):
             models.Index(fields=["numero_historia_clinica"]),
         ]
 
+    def get_anio_nacimiento(self):
+        anio = self.anio_nacimiento
+        if not anio:
+            persona_ = self.persona
+            if persona_:
+                if persona_.nacimiento:
+                    anio = persona_.nacimiento.year
+        return anio
+    def get_month_nacimiento(self):
+        month = self.mes_nacimiento
+        if not month:
+            persona_ = self.persona
+            if persona_:
+                if persona_.nacimiento:
+                    month = persona_.nacimiento.month
+        return month
+    def get_day_nacimiento(self):
+        day = self.dia_nacimiento
+        if not day:
+            persona_ = self.persona
+            if persona_:
+                if persona_.nacimiento:
+                    day = persona_.nacimiento.day
+        return day
+    def get_edad_anios(self):
+        edad = self.edad_anios
+        if not edad:
+            persona_ = self.persona
+            if persona_:
+                if persona_.nacimiento:
+                    anio_nacimiento = persona_.nacimiento.year
+                    hoy = date.today()
+
+                    edad = hoy.year - anio_nacimiento
+                    ya_cumplio = (hoy.month, hoy.day) < (persona_.nacimiento.month, persona_.nacimiento.day)
+
+                    edad = edad - ya_cumplio
+        return edad
+
+
 
 class AntecedenteLaboral(ModeloBase):
     evaluacion = models.ForeignKey(
@@ -371,6 +417,14 @@ class AntecedenteLaboral(ModeloBase):
     riesgos = models.TextField(blank=True, null=True)
     epp = models.TextField(blank=True, null=True)
     observaciones = models.TextField(blank=True, null=True)
+    anterior = models.BooleanField(blank=True, null=True)
+    actual = models.BooleanField(blank=True, null=True)
+    incidente = models.BooleanField(blank=True, null=True)
+    accidente = models.BooleanField(blank=True, null=True)
+    enfermedad_profesional = models.BooleanField(blank=True, null=True)
+    calificado_por_instituto = models.BooleanField(blank=True, null=True)
+    fecha = models.DateField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     class Meta:
         indexes = [models.Index(fields=["evaluacion"])]
@@ -443,8 +497,7 @@ class CertificadoEvaluacionMedicaOcupacional(ModeloBase):
     fecha_emision = models.DateField(blank=True, null=True)
 
     # “congelable” (por si luego editan la evaluación y el certificado no debe cambiar)
-    aptitud_medica = models.CharField(
-        max_length=30,
+    aptitud_medica = models.IntegerField(default=1,
         blank=True, null=True,
         choices=APTITUD_MEDICA,
         )
@@ -454,4 +507,42 @@ class CertificadoEvaluacionMedicaOcupacional(ModeloBase):
 
     class Meta:
         indexes = [models.Index(fields=["fecha_emision"])]
+
+class FactorRiesgoGrupo(ModeloBase):
+    """ Grupos principales: FÍSICO, MECÁNICO, QUÍMICO, etc. """
+    nombre = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True) # ej: 'fisico', 'seg'
+
+    def __str__(self):
+        return self.nombre
+
+class FactorRiesgoItem(ModeloBase):
+    """ Items específicos: Ruido, Iluminación, Polvos, etc. """
+    grupo = models.ForeignKey(FactorRiesgoGrupo, on_delete=models.CASCADE, related_name='items')
+    subgrupo = models.CharField(max_length=100, blank=True, null=True) # ej: 'MECÁNICOS'
+    nombre = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.grupo.nombre} - {self.nombre}"
+
+
+class EvaluacionFactorRiesgo(models.Model):
+    """
+    Tabla intermedia que guarda los 7 puestos/actividades
+    por cada item evaluado.
+    """
+    evaluacion = models.ForeignKey(EvaluacionMedicaOcupacional, on_delete=models.CASCADE)
+    factor_item = models.ForeignKey(FactorRiesgoItem, on_delete=models.CASCADE)
+
+    # Representan las columnas 1 al 7 de tu tabla HTML
+    puesto_1 = models.BooleanField(default=False, blank=True, null=True)
+    puesto_2 = models.BooleanField(default=False, blank=True, null=True)
+    puesto_3 = models.BooleanField(default=False, blank=True, null=True)
+    puesto_4 = models.BooleanField(default=False, blank=True, null=True)
+    puesto_5 = models.BooleanField(default=False, blank=True, null=True)
+    puesto_6 = models.BooleanField(default=False, blank=True, null=True)
+    puesto_7 = models.BooleanField(default=False, blank=True, null=True)
+
+    class Meta:
+        unique_together = ('evaluacion', 'factor_item')
 

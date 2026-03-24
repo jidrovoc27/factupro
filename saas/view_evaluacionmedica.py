@@ -1,6 +1,6 @@
 import os, subprocess, tempfile
 import json
-from datetime import datetime
+from datetime import datetime, date
 from django.db.models import Q
 from django.db import transaction
 from sistemamedico import settings
@@ -59,6 +59,61 @@ def chunk(lst, size):
     return [lst[i:i+size] for i in range(0, len(lst), size)] or [[]]
 
 
+def obtener_estructura_riesgos():
+    grupos_qs = FactorRiesgoGrupo.objects.filter(status=True).order_by('id')
+    estructura = []
+
+    for g in grupos_qs:
+        items_qs = g.items.filter(status=True).order_by('id')
+        if not items_qs:
+            continue
+
+        # Agrupamos ítems por el campo 'subgrupo' preservando el orden
+        subgrupos_dict = {}
+        for item in items_qs:
+            # Si subgrupo es None/vacío, lo agrupamos como 'GENERAL'
+            sg_nombre = item.subgrupo if item.subgrupo else "GENERAL"
+            if sg_nombre not in subgrupos_dict:
+                subgrupos_dict[sg_nombre] = []
+            subgrupos_dict[sg_nombre].append(item)
+
+        # Convertimos el diccionario a una lista procesable para el rowspan
+        lista_subgrupos = []
+        for sg_nombre, items in subgrupos_dict.items():
+            lista_subgrupos.append({
+                'nombre': sg_nombre if sg_nombre != "GENERAL" else None,
+                'items': items,
+                'count': len(items)
+            })
+
+        estructura.append({
+            'nombre': g.nombre,
+            'slug': g.slug,
+            'total_filas': len(items_qs),
+            'subgrupos': lista_subgrupos
+        })
+    return estructura
+
+
+def upsert_subtabla(p, json_key, deleted_key, Model, evaluacion, build_payload):
+    registros = _parse_json_list(p.get(json_key, '[]'))
+    eliminados = _parse_json_list(p.get(deleted_key, '[]'))
+
+    # 1. Eliminar los marcados como borrados
+    if eliminados:
+        ids_validos = [x for x in eliminados if x]
+        Model.objects.filter(id__in=ids_validos, evaluacion=evaluacion).delete()
+
+    # 2. Actualizar existentes / crear nuevos
+    for item in registros:
+        _id = item.get('id')
+        payload = build_payload(item)
+        if _id:
+            Model.objects.filter(id=_id, evaluacion=evaluacion).update(**payload)
+        else:
+            Model.objects.create(evaluacion=evaluacion, **payload)
+
+
 
 def view(request):
     data = {}
@@ -85,6 +140,13 @@ def view(request):
 
                     p = request.POST  # shortcut
 
+                    if not p.get('persona'):
+                        return JsonResponse({
+                            'result': True,
+                            'mensaje': 'Por favor, ingrese al paciente.'
+                        })
+
+
                     # ── Crear evaluación con TODOS los campos del formulario ──
                     ev = EvaluacionMedicaOcupacional(
                         persona_id=p.get('persona') or None,
@@ -104,6 +166,14 @@ def view(request):
                         gap_discapacidad=p.get('gap_discapacidad') or None,
                         gap_catastrofica=p.get('gap_catastrofica') or None,
                         gap_adulto_mayor=p.get('gap_adulto_mayor') or None,
+
+                        grupo_sanguineo=p.get('grupo_sanguineo') or None,
+                        lateralidad=p.get('lateralidad') or None,
+
+                        anio_nacimiento=p.get('nacimiento_anio') or None,
+                        mes_nacimiento=p.get('nacimiento_mes') or None,
+                        dia_nacimiento=p.get('nacimiento_dia') or None,
+                        edad_anios=p.get('edad') or None,
 
                         # B. Motivo consulta
                         fecha_atencion=_to_date_or_none(p.get('fecha_atencion')),
@@ -216,6 +286,28 @@ def view(request):
                         firma_huella_trabajador=p.get('firma_huella_trabajador') or None,
                     )
                     ev.save(request)
+
+                    anio = request.POST.get('nacimiento_anio')
+                    mes = request.POST.get('nacimiento_mes')
+                    dia = request.POST.get('nacimiento_dia')
+
+                    # 2. Variable para la fecha final
+                    fecha_nacimiento = None
+
+                    # 3. Validar que tengamos los tres datos
+                    if anio and mes and dia:
+                        try:
+                            # Convertimos a entero y creamos el objeto date
+                            fecha_nacimiento = date(int(anio), int(mes), int(dia))
+                        except ValueError:
+                            # Si la fecha es inválida (ej: 31 de abril), se queda como None
+                            # O puedes retornar un error al usuario
+                            pass
+
+                    # 4. Guardar en el modelo
+                    # Suponiendo que 'ev' es tu instancia de Evaluación o Persona
+                    ev.persona.nacimiento = fecha_nacimiento
+                    ev.persona.save()
 
                     # ── Tabla H — Antecedentes laborales (fusionada) ──
                     antecedentes = _parse_json_list(request.POST.get('antecedentes_json'))
@@ -331,6 +423,20 @@ def view(request):
                             firma_huella_trabajador=cert.get('firma_huella_trabajador') or None,
                         )
 
+                    items_catalogo = FactorRiesgoItem.objects.filter(status=True)
+                    for item in items_catalogo:
+                        prefix = f"gr_{item.grupo.slug}_{item.id}"
+
+                        # Obtenemos los valores del POST (True si está marcado, False si no)
+                        puestos = {f'puesto_{i}': request.POST.get(f"{prefix}_{i}") == 'on' for i in range(1, 8)}
+
+                        # Actualiza si existe, o crea si el usuario marcó algo nuevo
+                        EvaluacionFactorRiesgo.objects.update_or_create(
+                            evaluacion=ev,
+                            factor_item=item,
+                            defaults=puestos
+                        )
+
                     return JsonResponse({'result': False, 'mensaje': 'Guardado con éxito'})
 
             except Exception as ex:
@@ -361,6 +467,12 @@ def view(request):
                     ev.gap_discapacidad = p.get('gap_discapacidad') or None
                     ev.gap_catastrofica = p.get('gap_catastrofica') or None
                     ev.gap_adulto_mayor = p.get('gap_adulto_mayor') or None
+                    ev.grupo_sanguineo = p.get('grupo_sanguineo') or None
+                    ev.lateralidad = p.get('lateralidad') or None
+                    ev.anio_nacimiento = p.get('nacimiento_anio') or None
+                    ev.mes_nacimiento = p.get('nacimiento_mes') or None
+                    ev.dia_nacimiento = p.get('nacimiento_dia') or None
+                    ev.edad_anios = p.get('edad') or None
                     ev.fecha_atencion = _to_date_or_none(p.get('fecha_atencion'))
                     ev.fecha_ingreso_trabajo = _to_date_or_none(p.get('fecha_ingreso_trabajo'))
                     ev.fecha_reintegro = _to_date_or_none(p.get('fecha_reintegro'))
@@ -429,8 +541,107 @@ def view(request):
 
                     ev.save(request)
 
-                    # Sub-tablas: misma lógica que ADD (reutiliza el bloque de arriba)
-                    # ... (copiar desde el bloque de antecedentes hasta diagnósticos)
+                    # ── H. Antecedentes laborales ──
+                    upsert_subtabla(p,
+                        json_key='antecedentes_json',
+                        deleted_key='antecedentes_deleted',
+                        Model=AntecedenteLaboral,
+                        evaluacion=ev,
+                        build_payload=lambda a: dict(
+                            empresa=a.get('empresa') or None,
+                            puesto=a.get('puesto') or None,
+                            actividad=a.get('actividad_desempenada') or a.get('actividad') or None,
+                            tiempo=a.get('tiempo') or None,
+                            riesgos=a.get('riesgos') or None,
+                            epp=a.get('epp') or None,
+                            observaciones=a.get('observaciones') or None,
+                            anterior=_to_bool(a.get('anterior')),
+                            actual=_to_bool(a.get('actual')),
+                            incidente=_to_bool(a.get('incidente')),
+                            accidente=_to_bool(a.get('accidente')),
+                            enfermedad_profesional=_to_bool(a.get('enfermedad_profesional')),
+                            calificado_por_instituto=_to_bool(a.get('calificado_por_instituto')),
+                            fecha=_to_date_or_none(a.get('fecha')),
+                            descripcion=a.get('descripcion') or None,
+                        ),
+                    )
+
+                    # ── I. Actividades extralaborales ──
+                    upsert_subtabla(p,
+                        json_key='actividades_json',
+                        deleted_key='actividades_deleted',
+                        Model=ActividadExtraLaboral,
+                        evaluacion=ev,
+                        build_payload=lambda x: dict(
+                            tipo_actividad=x.get('tipo_actividad') or None,
+                            frecuencia=x.get('frecuencia') or None,
+                            observaciones=x.get('observaciones') or None,
+                        ),
+                    )
+
+                    # ── J. Exámenes ──
+                    upsert_subtabla(p,
+                        json_key='examenes_json',
+                        deleted_key='examenes_deleted',
+                        Model=ExamenGeneralEspecifico,
+                        evaluacion=ev,
+                        build_payload=lambda e: dict(
+                            nombre_examen=e.get('nombre_examen') or None,
+                            fecha=_to_date_or_none(e.get('fecha')),
+                            resultados=e.get('resultados') or None,
+                            observaciones=e.get('observaciones') or None,
+                        ),
+                    )
+
+                    # ── K. Diagnósticos ──
+                    upsert_subtabla(p,
+                        json_key='diagnosticos_json',
+                        deleted_key='diagnosticos_deleted',
+                        Model=Diagnostico,
+                        evaluacion=ev,
+                        build_payload=lambda d: dict(
+                            cie10=d.get('cie10') or None,
+                            descripcion=d.get('descripcion') or None,
+                            presuntivo=_to_bool(d.get('presuntivo')),
+                            definitivo=_to_bool(d.get('definitivo')),
+                        ),
+                    )
+
+                    anio = request.POST.get('nacimiento_anio')
+                    mes = request.POST.get('nacimiento_mes')
+                    dia = request.POST.get('nacimiento_dia')
+
+                    # 2. Variable para la fecha final
+                    fecha_nacimiento = None
+
+                    # 3. Validar que tengamos los tres datos
+                    if anio and mes and dia:
+                        try:
+                            # Convertimos a entero y creamos el objeto date
+                            fecha_nacimiento = date(int(anio), int(mes), int(dia))
+                        except ValueError:
+                            # Si la fecha es inválida (ej: 31 de abril), se queda como None
+                            # O puedes retornar un error al usuario
+                            pass
+
+                    # 4. Guardar en el modelo
+                    # Suponiendo que 'ev' es tu instancia de Evaluación o Persona
+                    ev.persona.nacimiento = fecha_nacimiento
+                    ev.persona.save()
+
+                    items_catalogo = FactorRiesgoItem.objects.filter(status=True)
+                    for item in items_catalogo:
+                        prefix = f"gr_{item.grupo.slug}_{item.id}"
+
+                        # Obtenemos los valores del POST (True si está marcado, False si no)
+                        puestos = {f'puesto_{i}': request.POST.get(f"{prefix}_{i}") == 'on' for i in range(1, 8)}
+
+                        # Actualiza si existe, o crea si el usuario marcó algo nuevo
+                        EvaluacionFactorRiesgo.objects.update_or_create(
+                            evaluacion=ev,
+                            factor_item=item,
+                            defaults=puestos
+                        )
 
                     return JsonResponse({'result': False, 'mensaje': 'Actualizado con éxito'})
 
@@ -570,6 +781,8 @@ def view(request):
                 data['RESPUESTA_SIMPLE'] = RESPUESTA_SIMPLE
                 data['OPCIONES_RESPUESTA'] = OPCIONES_RESPUESTA
 
+                data['factores_riesgo_grupos'] = obtener_estructura_riesgos()
+                data['riesgos_guardados'] = {}
                 template = get_template("sistemamedico/evaluacionmedica/evaluacion_tabs.html")
                 return JsonResponse({"result": True, "data": template.render(data, request)})
 
@@ -579,64 +792,95 @@ def view(request):
 
         # MODAL EDIT EVALUACION
         if action == 'editevaluacion':
-            ev = EvaluacionMedicaOcupacional.objects.get(pk=request.GET['id'])
-            data['id'] = ev.id
-            data['action'] = 'editevaluacion'
-            data['title_modal'] = 'Editar evaluación FEMO'
+            try:
+                data['ev'] = ev = EvaluacionMedicaOcupacional.objects.get(pk=request.GET['id'])
+                data['id'] = ev.id
+                data['action'] = 'editevaluacion'
+                data['title_modal'] = 'Editar evaluación FEMO'
 
-            initial = {
-                # aquí pones TODOS los campos del form (igual como ya venías)
-                'profesional': ev.profesional_id,
-                'institucion_sistema': ev.institucion_sistema,
-                'ruc': ev.ruc,
-                'ciu': ev.ciu,
-                'establecimiento_trabajo': ev.establecimiento_trabajo,
-                'numero_historia_clinica': ev.numero_historia_clinica,
-                'numero_archivo': ev.numero_archivo,
-                'puesto_trabajo_ciu': ev.puesto_trabajo_ciu,
-                'grupo_atencion_prioritaria': ev.grupo_atencion_prioritaria,
-                'fecha_atencion': ev.fecha_atencion,
-                'fecha_ingreso_trabajo': ev.fecha_ingreso_trabajo,
-                'fecha_reintegro': ev.fecha_reintegro,
-                'fecha_ultimo_dia_laboral': ev.fecha_ultimo_dia_laboral,
-                'tipo_evaluacion': ev.tipo_evaluacion,
-                'motivo_consulta': ev.motivo_consulta,
-                'aptitud_medica': ev.aptitud_medica,
-                'aptitud_detalle_observaciones': ev.aptitud_detalle_observaciones,
-                'recomendaciones_tratamiento': ev.recomendaciones_tratamiento,
-            }
-            data['form'] = form_ = EvaluacionMedicaOcupacionalForm(initial=initial)
-            if ev.persona:
-                form_.cargar_persona(ev.persona)
+                initial = {
+                    # aquí pones TODOS los campos del form (igual como ya venías)
+                    'profesional': ev.profesional_id,
+                    'institucion_sistema': ev.institucion_sistema,
+                    'ruc': ev.ruc,
+                    'ciu': ev.ciu,
+                    'establecimiento_trabajo': ev.establecimiento_trabajo,
+                    'numero_historia_clinica': ev.numero_historia_clinica,
+                    'numero_archivo': ev.numero_archivo,
+                    'puesto_trabajo_ciu': ev.puesto_trabajo_ciu,
+                    'grupo_atencion_prioritaria': ev.grupo_atencion_prioritaria,
+                    'fecha_atencion': ev.fecha_atencion,
+                    'fecha_ingreso_trabajo': ev.fecha_ingreso_trabajo,
+                    'fecha_reintegro': ev.fecha_reintegro,
+                    'fecha_ultimo_dia_laboral': ev.fecha_ultimo_dia_laboral,
+                    'tipo_evaluacion': ev.tipo_evaluacion,
+                    'motivo_consulta': ev.motivo_consulta,
+                    'aptitud_medica': ev.aptitud_medica,
+                    'aptitud_detalle_observaciones': ev.aptitud_detalle_observaciones,
+                    'recomendaciones_tratamiento': ev.recomendaciones_tratamiento,
+                }
+                data['form'] = form_ = EvaluacionMedicaOcupacionalForm(initial=initial)
+                if ev.persona:
+                    form_.cargar_persona(ev.persona)
 
-            data["preload_json"] = json.dumps({
-                "antecedentes": list(ev.antecedentes_laborales.filter(status=True).values(
-                    "id", "empresa", "puesto", "actividad", "tiempo", "riesgos", "epp", "observaciones"
-                )),
-                "incidentes": list(ev.incidentes_ocupacionales.filter(status=True).values(
-                    "id", "puesto_trabajo", "actividad_desempenada", "fecha", "descripcion",
-                    "calificado_por_instituto", "reubicacion", "observaciones"
-                )),
-                "actividades": list(ev.actividades_extralaborales.filter(status=True).values(
-                    "id", "tipo_actividad", "frecuencia", "observaciones"
-                )),
-                "examenes": list(ev.examenes.filter(status=True).values(
-                    "id", "nombre_examen", "fecha", "resultados", "observaciones"
-                )),
-                "diagnosticos": list(ev.diagnosticos.filter(status=True).values(
-                    "id", "cie10", "descripcion", "presuntivo", "definitivo"
-                )),
-                "certificado": (lambda c: {
-                    "fecha_emision": c.fecha_emision.strftime("%Y-%m-%d") if c and c.fecha_emision else "",
-                    "aptitud_medica": c.aptitud_medica if c else "",
-                    "detalle_observaciones": c.detalle_observaciones if c else "",
-                    "recomendaciones": c.recomendaciones if c else "",
-                    "firma_huella_trabajador": c.firma_huella_trabajador if c else "",
-                })(getattr(ev, "certificado", None))
-            }, ensure_ascii=False, default=str)
+                    # ── Subtablas → JSON para precargar las tablas dinámicas ──
+                    antecedentes = list(
+                        ev.antecedentes_laborales.filter(status=True).values(
+                            'id', 'empresa', 'puesto', 'actividad', 'tiempo',
+                            'riesgos', 'epp', 'observaciones',
+                            'anterior', 'actual', 'incidente', 'accidente',
+                            'enfermedad_profesional', 'calificado_por_instituto',
+                            'fecha', 'descripcion',
+                        )
+                    )
 
-            template = get_template("sistemamedico/evaluacionmedica/evaluacion_tabs.html")
-            return JsonResponse({"result": True, "data": template.render(data, request)})
+                    # fecha es DateField → serializar a string
+                    for a in antecedentes:
+                        a['fecha'] = a['fecha'].strftime('%Y-%m-%d') if a['fecha'] else ''
+
+                    actividades = list(
+                        ev.actividades_extralaborales.filter(status=True).values(
+                            'id', 'tipo_actividad', 'frecuencia', 'observaciones',
+                        )
+                    )
+
+                    examenes = list(
+                        ev.examenes.filter(status=True).values(
+                            'id', 'nombre_examen', 'fecha', 'resultados', 'observaciones',
+                        )
+                    )
+                    for e in examenes:
+                        e['fecha'] = e['fecha'].strftime('%Y-%m-%d') if e['fecha'] else ''
+
+                    diagnosticos = list(
+                        ev.diagnosticos.filter(status=True).values(
+                            'id', 'cie10', 'descripcion', 'presuntivo', 'definitivo',
+                        )
+                    )
+
+                    data['preload_json'] = json.dumps({
+                        'antecedentes': antecedentes,
+                        'actividades': actividades,
+                        'examenes': examenes,
+                        'diagnosticos': diagnosticos,
+                        'certificado': {},
+                    }, ensure_ascii=False)
+
+                data['factores_riesgo_grupos'] = obtener_estructura_riesgos()
+                data['riesgos_guardados'] = {
+                    rel.factor_item_id: rel
+                    for rel in EvaluacionFactorRiesgo.objects.filter(evaluacion=ev)
+                    # Usa 'ev' que ya tienes definido arriba
+                }
+                data['TIPO_EVALUACION_CHOICES'] = TIPO_EVALUACION_CHOICES
+                data['APTITUD_MEDICA'] = APTITUD_MEDICA
+                data['RESPUESTA_SIMPLE'] = RESPUESTA_SIMPLE
+                data['OPCIONES_RESPUESTA'] = OPCIONES_RESPUESTA
+
+                template = get_template("sistemamedico/evaluacionmedica/evaluacion_tabs.html")
+                return JsonResponse({"result": True, "data": template.render(data, request)})
+            except Exception as ex:
+                pass
 
         if action == 'ver_evaluacion':
             ev = EvaluacionMedicaOcupacional.objects.get(pk=request.GET['id'])

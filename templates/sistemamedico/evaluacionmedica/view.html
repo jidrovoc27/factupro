@@ -189,25 +189,10 @@
         $(document).on("submit", "#formModal", function (e) {
             e.preventDefault();
 
-            // (1) Llenar JSON antes de enviar
-            $("#antecedentes_json").val(JSON.stringify(collectAntecedentes()));
-            $("#incidentes_json").val(JSON.stringify(collectIncidentes()));
-            $("#actividades_json").val(JSON.stringify(collectActividades()));
-            $("#examenes_json").val(JSON.stringify(collectExamenes()));
-            $("#diagnosticos_json").val(JSON.stringify(collectDiagnosticos()));
-            $("#certificado_json").val(JSON.stringify(collectCertificado()));
-
-            // deleted
-            $("#antecedentes_deleted").val(JSON.stringify(deletedAntecedentes || []));
-            $("#incidentes_deleted").val(JSON.stringify(deletedIncidentes || []));
-            $("#actividades_deleted").val(JSON.stringify(deletedActividades || []));
-            $("#examenes_deleted").val(JSON.stringify(deletedExamenes || []));
-            $("#diagnosticos_deleted").val(JSON.stringify(deletedDiagnosticos || []));
-
             // (2) Evitar doble click y doble envío
             const btn = $(this).find('button[type="submit"]');
             btn.prop("disabled", true);
-
+            console.log($('#formModal').serializeArray());
             $.post("", $(this).serialize(), function (r) {
                 if (!r.result) location.reload();
                 else {

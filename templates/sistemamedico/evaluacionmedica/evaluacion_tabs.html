@@ -1,4 +1,5 @@
-<form id="formModal" method="post" novalidate>
+{% load extras_html %}
+<form id="formModal" method="post">
     {% csrf_token %}
     <input type="hidden" name="action" value="{{ action }}">
     {% if id %}<input type="hidden" name="id" value="{{ id }}">{% endif %}
@@ -106,10 +107,10 @@
                             <select class="fi" name="gap_embarazada" style="width:100%">
                                 <option value="">-</option>
                                 <option value="1"
-                                        {% if ev.grupo_atencion_prioritaria_embarazada == 1 %}selected{% endif %}>SI
+                                        {% if ev.gap_embarazada == 1 %}selected{% endif %}>SI
                                 </option>
                                 <option value="2"
-                                        {% if ev.grupo_atencion_prioritaria_embarazada == 2 %}selected{% endif %}>NO
+                                        {% if ev.gap_embarazada == 2 %}selected{% endif %}>NO
                                 </option>
                             </select>
                         </td>
@@ -117,10 +118,10 @@
                             <select class="fi" name="gap_discapacidad" style="width:100%">
                                 <option value="">-</option>
                                 <option value="1"
-                                        {% if ev.grupo_atencion_prioritaria_discapacidad == 1 %}selected{% endif %}>SI
+                                        {% if ev.gap_discapacidad == 1 %}selected{% endif %}>SI
                                 </option>
                                 <option value="2"
-                                        {% if ev.grupo_atencion_prioritaria_discapacidad == 2 %}selected{% endif %}>NO
+                                        {% if ev.gap_discapacidad == 2 %}selected{% endif %}>NO
                                 </option>
                             </select>
                         </td>
@@ -128,10 +129,10 @@
                             <select class="fi" name="gap_catastrofica" style="width:100%">
                                 <option value="">-</option>
                                 <option value="1"
-                                        {% if ev.grupo_atencion_prioritaria_catastrofica == 1 %}selected{% endif %}>SI
+                                        {% if ev.gap_catastrofica == 1 %}selected{% endif %}>SI
                                 </option>
                                 <option value="2"
-                                        {% if ev.grupo_atencion_prioritaria_catastrofica == 2 %}selected{% endif %}>NO
+                                        {% if ev.gap_catastrofica == 2 %}selected{% endif %}>NO
                                 </option>
                             </select>
                         </td>
@@ -139,38 +140,38 @@
                             <select class="fi" name="gap_adulto_mayor" style="width:100%">
                                 <option value="">-</option>
                                 <option value="1"
-                                        {% if ev.grupo_atencion_prioritaria_adulto_mayor == 1 %}selected{% endif %}>SI
+                                        {% if ev.gap_adulto_mayor == 1 %}selected{% endif %}>SI
                                 </option>
                                 <option value="2"
-                                        {% if ev.grupo_atencion_prioritaria_adulto_mayor == 2 %}selected{% endif %}>NO
+                                        {% if ev.gap_adulto_mayor == 2 %}selected{% endif %}>NO
                                 </option>
                             </select>
                         </td>
 
-                        <td><input type="radio" name="sexo" value="M" {% if ev.persona.sexo == 'M' %}checked{% endif %}>
+                        <td><input type="radio" required name="sexo" value="M" {% if ev.persona.sexo == 'M' %}checked{% endif %}>
                         </td>
-                        <td><input type="radio" name="sexo" value="F" {% if ev.persona.sexo == 'F' %}checked{% endif %}>
+                        <td><input type="radio" required name="sexo" value="F" {% if ev.persona.sexo == 'F' %}checked{% endif %}>
                         </td>
 
-                        <td><input type="number" class="fi" name="nacimiento_anio" placeholder="AAAA"
-                                   value="{{ ev.persona.fecha_nacimiento|date:'Y' }}"
+                        <td><input type="number" required class="fi" name="nacimiento_anio" placeholder="AAAA"
+                                   value="{{ ev.get_anio_nacimiento }}"
                                    style="width:95%; text-align:center"></td>
-                        <td><input type="number" class="fi" name="nacimiento_mes" placeholder="MM"
-                                   value="{{ ev.persona.fecha_nacimiento|date:'m' }}"
+                        <td><input type="number" required class="fi" name="nacimiento_mes" placeholder="MM"
+                                   value="{{ ev.get_month_nacimiento }}"
                                    style="width:95%; text-align:center"></td>
-                        <td><input type="number" class="fi" name="nacimiento_dia" placeholder="DD"
-                                   value="{{ ev.persona.fecha_nacimiento|date:'d' }}"
+                        <td><input type="number" required class="fi" name="nacimiento_dia" placeholder="DD"
+                                   value="{{ ev.get_day_nacimiento }}"
                                    style="width:95%; text-align:center"></td>
 
-                        <td><input type="number" class="fi" name="edad" value="{{ ev.persona.edad }}"
+                        <td><input type="number" required class="fi" name="edad" value="{{ ev.get_edad_anios }}"
                                    style="width:95%; text-align:center"></td>
 
                         <td><input type="text" class="fi" name="grupo_sanguineo"
-                                   value="{{ ev.persona.grupo_sanguineo|default_if_none:'' }}"
+                                   value="{{ ev.grupo_sanguineo|default_if_none:'' }}"
                                    style="width:95%; text-align:center"></td>
 
                         <td><input type="text" class="fi" name="lateralidad"
-                                   value="{{ ev.persona.lateralidad|default_if_none:'' }}"
+                                   value="{{ ev.lateralidad|default_if_none:'' }}"
                                    style="width:95%; text-align:center"></td>
                     </tr>
                 </table>
@@ -288,7 +289,7 @@
                         </td>
                         <td>
                             <div class="cb-group"><input type="radio" name="requiere_transfusiones" value="false"
-                                                         {% if ev.requiere_transfusiones == False %}checked{% endif %}>
+                                                         {% if not ev.requiere_transfusiones %}checked{% endif %}>
                             </div>
                         </td>
                         <td></td>
@@ -301,7 +302,7 @@
                         </td>
                         <td>
                             <div class="cb-group"><input type="radio" name="tratamiento_hormonal" value="false"
-                                                         {% if ev.tratamiento_hormonal == False %}checked{% endif %}>
+                                                         {% if not ev.tratamiento_hormonal %}checked{% endif %}>
                             </div>
                         </td>
                     </tr>
@@ -697,225 +698,56 @@
                 </tr>
 
                 {% for grupo in factores_riesgo_grupos %}
-                    {% for item in grupo.items %}
-                        <tr style="height:14px">
-                            {% if forloop.first %}
-                                <td rowspan="{{ grupo.count }}" class="rotated bold"
-                                    style="width:4%">{{ grupo.nombre }}</td>
-                                {% if grupo.sub %}
-                                    <td rowspan="{{ grupo.sub_count }}" class="rotated"
-                                        style="width:4%; font-size:8px">{{ grupo.sub }}</td>
-                                {% else %}
-                                    <td rowspan="{{ grupo.count }}" style="border:none; width:4%"></td>
-                                {% endif %}
-                            {% endif %}
-                            {% if grupo.sub and forloop.counter == grupo.sub_count|add:1 %}
-                                <td rowspan="{{ grupo.resto }}" class="rotated"
-                                    style="width:4%; font-size:8px">{{ grupo.sub2 }}</td>
-                            {% endif %}
-                            <td style="font-size:9px">{{ item }}</td>
-                            <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_1"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_2"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_3"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_4"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_5"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_6"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="gr_{{ grupo.slug }}_{{ forloop.counter }}_7"
-                                                      style="width:12px;height:12px"></td>
-                        </tr>
-                    {% endfor %}
-                {% empty %}
-                    <!-- Tabla estática si no hay contexto de grupos -->
-                    {% for label in lista %}
-                        <tr style="height:14px">
-                            {% if forloop.first %}
-                                <td rowspan="10" class="rotated bold" style="width:4%">FÍSICO</td>
-                                <td rowspan="10" style="border:none;width:4%"></td>{% endif %}
-                            <td>{{ label }}</td>
-                            <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_1"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_2"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_3"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_4"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_5"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_6"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="fisico_{{ forloop.counter }}_7"
-                                                      style="width:12px;height:12px"></td>
-                        </tr>
-                    {% endfor %}
+        {% for subgrupo in grupo.subgrupos %}
+            {% for item in subgrupo.items %}
+            <tr>
+                {# 1. COLUMNA GRUPO PRINCIPAL #}
+                {% if forloop.parentloop.first and forloop.first %}
+                    <td rowspan="{{ grupo.total_filas }}"
+                        {# Si el primer subgrupo es vacío, expandimos el nombre del grupo hacia la derecha #}
+                        {% if not subgrupo.nombre %} colspan="2" {% endif %}
+                        class="rotated center"
+                        style="background-color: #d1f2d1; width: 45px;">
+                        {{ grupo.nombre }}
+                    </td>
+                {% endif %}
 
-                    <tr style="height:14px">
-                        <td class="bold" colspan="2">LOCATIVOS</td>
-                        <td>Falta de señalización, aseo, desorden</td>
-                        <td class="center"><input type="checkbox" name="loc_1_1" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" name="loc_1_2" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" name="loc_1_3" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" name="loc_1_4" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" name="loc_1_5" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" name="loc_1_6" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" name="loc_1_7" style="width:12px;height:12px"></td>
-                    </tr>
+                {# 2. COLUMNA SUBGRUPO (Solo se crea si el subgrupo tiene nombre) #}
+                {% if subgrupo.nombre %}
+                    {% if forloop.first %}
+                        <td rowspan="{{ subgrupo.count }}" class="rotated center"
+                            style="background-color: #d1f2d1; width: 45px; font-size: 8px;">
+                            {{ subgrupo.nombre }}
+                        </td>
+                    {% endif %}
+                {% endif %}
 
-                    {% for label in listaseguridad %}
-                        <tr style="height:14px">
-                            {% if forloop.first %}
-                                <td rowspan="16" class="rotated bold" style="width:4%">DE SEGURIDAD</td>
-                                <td rowspan="12" class="rotated" style="width:4%;font-size:8px">MECÁNICOS
-                                </td>{% endif %}
-                            <td>{{ label }}</td>
-                            <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_1"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_2"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_3"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_4"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_5"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_6"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="seg_{{ forloop.counter }}_7"
-                                                      style="width:12px;height:12px"></td>
-                        </tr>
+                {# 3. COLUMNA NOMBRE DEL RIESGO #}
+                <td style="border: 1px solid #000; padding: 2px; font-size: 9px; min-width: 250px;">
+                    {{ item.nombre }}
+                </td>
+
+                {# 4. COLUMNAS DE CHECKBOXES (1-7) #}
+                {% with relacion=riesgos_guardados|get_item:item.id %}
+                    {% for i in "1234567" %}
+                    <td class="center" style="border: 1px solid #000; width: 30px;">
+                        <input type="checkbox" name="gr_{{ grupo.slug }}_{{ item.id }}_{{ forloop.counter }}"
+                               {% if i == "1" and relacion.puesto_1 %}checked{% elif i == "2" and relacion.puesto_2 %}checked{% elif i == "3" and relacion.puesto_3 %}checked{% elif i == "4" and relacion.puesto_4 %}checked{% elif i == "5" and relacion.puesto_5 %}checked{% elif i == "6" and relacion.puesto_6 %}checked{% elif i == "7" and relacion.puesto_7 %}checked{% endif %}>
+                    </td>
                     {% endfor %}
-                    <tr style="height:14px">
-                        <td class="bold col-hdr">ELÉCTRICOS</td>
-                        <td>Contacto eléctrico</td>
-                        <td class="center"><input type="checkbox" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" style="width:12px;height:12px"></td>
-                        <td class="center"><input type="checkbox" style="width:12px;height:12px"></td>
-                    </tr>
-                    <tr style="height:14px">
-                        <td class="bold col-hdr">OTROS</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
+                {% endwith %}
+            </tr>
+            {% endfor %}
+        {% endfor %}
+    {% endfor %}
 
-                    {% for label in listaquimicos %}
-                        <tr style="height:14px">
-                            {% if forloop.first %}
-                                <td rowspan="9" class="rotated bold" colspan="2" style="width:8%">QUÍMICO
-                                </td>{% endif %}
-                            <td>{{ label }}</td>
-                            <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_1"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_2"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_3"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_4"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_5"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_6"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="quim_{{ forloop.counter }}_7"
-                                                      style="width:12px;height:12px"></td>
-                        </tr>
-                    {% endfor %}
-
-                    {% for label in listabiologicos %}
-                        <tr style="height:14px">
-                            {% if forloop.first %}
-                                <td rowspan="7" class="rotated bold" colspan="2" style="width:8%">BIOLÓGICO
-                                </td>{% endif %}
-                            <td>{{ label }}</td>
-                            <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_1"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_2"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_3"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_4"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_5"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_6"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="bio_{{ forloop.counter }}_7"
-                                                      style="width:12px;height:12px"></td>
-                        </tr>
-                    {% endfor %}
-
-                    {% for label in listaergonomicos %}
-                        <tr style="height:14px">
-                            {% if forloop.first %}
-                                <td rowspan="6" class="rotated bold" colspan="2" style="width:8%">ERGONÓMICO
-                                </td>{% endif %}
-                            <td>{{ label }}</td>
-                            <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_1"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_2"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_3"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_4"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_5"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_6"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="erg_{{ forloop.counter }}_7"
-                                                      style="width:12px;height:12px"></td>
-                        </tr>
-                    {% endfor %}
-
-                    {% for label in listapsicosociales %}
-                        <tr style="height:14px">
-                            {% if forloop.first %}
-                                <td rowspan="14" class="rotated bold" colspan="2" style="width:8%">PSICOSOCIAL
-                                </td>{% endif %}
-                            <td>{{ label }}</td>
-                            <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_1"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_2"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_3"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_4"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_5"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_6"
-                                                      style="width:12px;height:12px"></td>
-                            <td class="center"><input type="checkbox" name="psi_{{ forloop.counter }}_7"
-                                                      style="width:12px;height:12px"></td>
-                        </tr>
-                    {% endfor %}
-
-                    <tr style="height:18px">
-                        <td colspan="3" class="col-hdr bold">MEDIDAS PREVENTIVAS</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                {% endfor %} {# cierra el for vacío de factores_riesgo_grupos #}
+                <tr style="height:18px">
+                    <td colspan="3" class="col-hdr bold">MEDIDAS PREVENTIVAS</td>
+                    <td colspan="9">
+                        <textarea name="medidas_preventivas"
+                                  style="width:100%; border:none; font-size:9px;">{{ ev.medidas_preventivas|default_if_none:'' }}</textarea>
+                    </td>
+                </tr>
             </table>
         </div><!-- /tab-p2 -->
 
@@ -1040,8 +872,8 @@
                     <tr style="text-align:center; height:26px">
                         {% for aptitud_ in APTITUD_MEDICA %}
                             <td>
-                                <div class="cb-group"><input type="radio" name="aptitud_medica" value="{{ aptitud_.0 }}"
-                                                             {% if ev.aptitud_medica == 'APTO' %}checked{% endif %}>
+                                <div class="cb-group"><input type="radio" required name="aptitud_medica" value="{{ aptitud_.0 }}"
+                                                             {% if ev.aptitud_medica == aptitud_.0 %}checked{% endif %}>
                                 </div>
                             </td>
                         {% endfor %}
@@ -1089,7 +921,7 @@
                         </td>
                         <td>
                             <div class="cb-group"><input type="radio" name="retiro_se_realiza_evaluacion" value="false"
-                                                         {% if ev.retiro_se_realiza_evaluacion == False %}checked{% endif %}>
+                                                         {% if not ev.retiro_se_realiza_evaluacion %}checked{% endif %}>
                             </div>
                         </td>
                         <td></td>
@@ -1111,7 +943,7 @@
                         <td>
                             <div class="cb-group"><input type="radio" name="retiro_condicion_relacionada_trabajo"
                                                          value="false"
-                                                         {% if ev.retiro_condicion_relacionada_trabajo == False %}checked{% endif %}>
+                                                         {% if not ev.retiro_condicion_relacionada_trabajo %}checked{% endif %}>
                             </div>
                         </td>
                         <td></td>
@@ -1283,7 +1115,7 @@
         tr.innerHTML = `
     <td><input class="fi x-tipo" value="${esc(d.tipo_actividad)}"></td>
     <td><textarea class="fi x-obs" rows="1">${esc(d.observaciones)}</textarea></td>
-    <td><input type="date" class="fi x-fecha" value="${esc(d.fecha)}"></td>
+    <td><input type="date" class="fi x-fecha" value="${esc(d.frecuencia)}"></td>
     <td class="center"><button type="button" class="btn-danger-sm" onclick="delRow(this,'actividades')">✕</button></td>`;
         tbody.appendChild(tr);
     }
@@ -1293,7 +1125,7 @@
             id: tr.dataset.id || null,
             tipo_actividad: tr.querySelector('.x-tipo')?.value || '',
             observaciones: tr.querySelector('.x-obs')?.value || '',
-            fecha: tr.querySelector('.x-fecha')?.value || '',
+            frecuencia: tr.querySelector('.x-fecha')?.value || '',
         })).filter(o => Object.values(o).some(v => (v || '').toString().trim() !== ''));
     }
 
